@@ -104,89 +104,130 @@ h1 .tag{margin-left:8px;font-weight:400;vertical-align:2px}
 .pad{grid-column:2;grid-row:2;display:grid;gap:2px;width:min(340px,80vw)}
 .pcell{aspect-ratio:1;border-radius:2px;border:2px solid transparent;padding:0;font-size:10px;line-height:1;cursor:pointer;min-width:0}
 .pcell.cur{border:3px solid var(--ink);outline:2px solid var(--accent);outline-offset:1px;z-index:1}
+
+/* ---- v2 presentation ---- */
+body{font-size:17px;padding:8px 14px 8px}
+h1{font-size:20px}
+.top{max-width:none;margin:0 0 4px}.meta{font-size:15px;gap:16px}#m-save{font-size:14px}#m-save.warn{font-weight:600}.tag{font-size:13px}
+.bar{max-width:none;margin:0 0 8px}
+.wrap{max-width:none}
+.intro{max-width:720px;margin:24px auto;font-size:18px}.intro h2{font-size:21px;margin:0 0 10px}.intro p{color:var(--ink);font-size:18px}
+.intro input[type=text],#rname{font-size:18px!important;padding:9px 12px!important}
+.intro button.pri{font-size:18px;padding:10px 22px}
+.done{max-width:720px;margin:24px auto;font-size:17px}.done h2{font-size:20px!important}.done .status{font-size:16px}
+#trial .tw{display:grid;grid-template-columns:minmax(0,1fr) clamp(250px,19vw,330px);grid-template-rows:auto minmax(0,1fr);
+  gap:8px 16px;height:calc(100vh - 64px)}
+.head{grid-column:1;grid-row:1;display:flex;gap:18px;align-items:center;min-height:0}
+.tipsbox{font-size:17px;line-height:1.45;max-width:520px;flex:0 1 520px}
+.tipsbox .tline{margin:0 0 3px}.tipsbox kbd{font-size:15px;padding:0 6px}
+.tipsbox .edit2{color:var(--muted);font-size:16px;margin-top:6px}.tipsbox .edit2 b{color:var(--ink);font-weight:600}
+.head .orig{margin:0;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px}
+.head .orig img{height:var(--headh);width:auto;max-width:none;max-height:none}
+.head .orig img.big{height:auto;max-height:70vh}
+.olab{font-size:13px}
+:root{--headh:min(18vh,180px)}
+.stagecell{grid-column:1;grid-row:2;min-height:0;position:relative;display:flex;flex-direction:column;gap:8px}
+#booth{flex:0 0 auto}
+.stage{display:flex;justify-content:center;align-items:flex-start;gap:12px}
+.side{flex:0 0 auto;min-width:0}.side h2{font-size:17px;margin:0 0 2px}
+.view{display:inline-block;max-width:none}
+.view canvas.main{width:auto;height:auto;max-height:none;max-width:none}
+.single{text-align:center}.single .view{max-width:none;margin:0 auto}.flabel{font-size:17px}
+.loadbox{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:5;background:var(--panel);border:1px solid var(--line);
+  border-radius:6px;padding:12px 18px;margin:0;font-size:16px;color:var(--ink)}
+.scrub{margin:0;flex:0 0 auto}.scrubhead{font-size:15px}.scrubhead b{font-size:15px}.cell{height:30px}
+.sidecol{grid-column:2;grid-row:1 / span 2;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto}
+.sidecol .tools{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0}
+.sidecol .tools button{font-size:15px;padding:8px 6px}
+.answers{margin:0;max-width:none;gap:10px;padding:12px 12px}
+.arow .lab{font-size:17px}.arow .lab small{font-size:12px;display:block;margin:0}
+.seg{width:100%;flex-wrap:nowrap}.seg button{min-width:0;flex:1;font-size:17px;padding:10px 4px}
+.next button{font-size:18px;padding:10px 26px}
+.status{font-size:14px}
+/* Faces: the 10 x 10 grid beside the source image; square image boxes */
+.head .scrub2{margin:0;display:flex;flex-direction:row;align-items:center;gap:12px;flex:0 0 auto}
+.head .scrub2 .scrubhead{font-size:15px}.padside{display:flex;flex-direction:column;gap:8px;max-width:170px}
+.padside .legend{flex-direction:column;align-items:flex-start;gap:3px}
+.tw.faces .tipsbox .edit2{display:none}
+.padwrap{display:grid;grid-template-columns:auto auto;gap:3px;align-items:center}
+.axlab{font-size:14px;color:var(--ink)}
+.ax1{grid-column:2;grid-row:1;text-align:center}
+.ax0{grid-column:1;grid-row:2;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center}
+.pad{grid-column:2;grid-row:2;display:grid;gap:1px;width:var(--headh);height:var(--headh)}
+.pcell{aspect-ratio:auto;border-radius:1px;border:1px solid transparent;padding:0;font-size:9px;line-height:1;cursor:pointer;min-width:0;min-height:0}
+.pcell.cur{border:2px solid var(--ink);outline:2px solid var(--accent);outline-offset:0}
+.legend{font-size:13px}
+@media (max-width:900px){#trial .tw{grid-template-columns:1fr;height:auto}.sidecol{grid-column:1;grid-row:auto}.head{flex-wrap:wrap}}
 </style>
 </head>
 <body>
 
 <div class="top">
   <h1>Image sliders, set 2 <span class="tag" id="m-part"></span></h1>
-  <div class="meta"><span id="m-progress">loading…</span><span id="m-save" role="button" tabindex="0"></span><button class="linkbtn" id="b-dl" type="button">Download my answers</button></div>
+  <div class="meta"><span id="m-progress">loading…</span><span id="m-save" role="button" tabindex="0"></span><button class="linkbtn" id="b-dl" type="button" hidden>Download my answers</button></div>
 </div>
 <div class="bar"><i id="bar"></i></div>
 
 <div class="wrap">
-  <section class="intro" id="intro">
-    <p><b>What you are judging.</b> Each trial shows two versions, A and B, of the same editing slider: the same edit rendered at every strength, in two different ways. They start paused at the lowest strength; press Play to sweep from low to high strength and back, or step to any strength to look closely.</p>
-    <p>The row of cells under the images is the strength axis. White means no visible difference between A and B at that strength; orange to dark plum means a growing difference, on the same scale for every trial. Triangles mark this pair's three most different strengths. Click a cell to jump there.</p>
-    <p>Answer three questions. Each starts at <b>Same</b>; change it only where you see a difference.</p>
-    <ul>
-      <li><b>Smoothness / Consistency</b>: which slider changes more smoothly and consistently as you move it, with no flicker or jumps in parts that should stay the same?</li>
-      <li><b>Fewer artifacts</b>: which shows fewer visual defects: double edges, see-through or doubled objects, washed-out or mixed regions, smears, blur, distorted shapes.</li>
-      <li><b>Better overall</b>: which slider you would rather use.</li>
-    </ul>
-    <ul>
-      <li>Keys: <kbd>Space</kbd> play or pause; <kbd>←</kbd> <kbd>→</kbd> step the strength; <kbd>F</kbd> flicker A and B in one place; <kbd>O</kbd> flicker both with the original image; hover for a 2× lens.</li>
-      <li>Answers: <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> smoothness / consistency A / same / B; <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> artifacts; <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> overall; <kbd>Enter</kbd> next; <kbd>Backspace</kbd> back.</li>
-      <li id="part-note">This is one of three parts.</li>
-    </ul>
+  <section class="intro" id="intro" hidden>
+    <h2 id="part-note">Image sliders, set 2</h2>
     <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label for="rname"><b>Name</b></label>
       <input id="rname" type="text" autocomplete="off" maxlength="60" placeholder="Your name"
-        style="font:15px var(--ui);padding:7px 10px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);min-width:240px"></p>
+        style="font:15px var(--ui);padding:7px 10px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);min-width:240px">
+      <button class="pri" id="start" disabled>Loading…</button></p>
     <p id="store-note" class="status" style="text-align:left"></p>
-    <button class="pri" id="start" disabled>Loading trials…</button>
   </section>
 
   <section id="trial" hidden>
-    <div class="tips" id="tips"><span class="tips-h">Tips</span>
-      <ul>
-        <li>Slide through strengths with the arrow keys (<kbd>←</kbd> <kbd>→</kbd>) to look at smoothness and consistency.</li>
-        <li>A/B flicker (<kbd>F</kbd>) might be helpful for revealing small differences.</li>
-        <li>Colour shows how different the two sliders are across strengths.</li>
-      </ul>
-    </div>
-    <div class="q"><span class="tag" id="t-bed">Image editing slider</span><span class="edit" id="t-edit"></span></div>
-    <div class="orig" id="orig" hidden>
-      <div class="olab">Original image <span>(the input before the edit)</span></div>
-      <img id="origimg" alt="Original image before the edit">
-    </div>
-    <div class="loadbox" id="loadbox" hidden><span id="loadtxt">Loading this comparison…</span><span class="lbar"><i id="loadbar"></i></span></div>
-    <div id="booth">
-      <div class="stage">
-        <div class="side"><h2>A<span class="olab" id="olabA"></span></h2><div class="view" id="vA"><canvas class="main" id="cA"></canvas><canvas class="lens" id="lA" width="260" height="260"></canvas></div></div>
-        <div class="side"><h2>B<span class="olab" id="olabB"></span></h2><div class="view" id="vB"><canvas class="main" id="cB"></canvas><canvas class="lens" id="lB" width="260" height="260"></canvas></div></div>
+   <div class="tw">
+    <div class="head">
+      <div class="tipsbox" id="tips"><div class="tline">Step through strengths with <kbd>←</kbd> <kbd>→</kbd>; look at smoothness and consistency.</div><div class="tline">A/B flicker <kbd>F</kbd> helps reveal small differences.</div><div class="tline">Colour shows how different the two are across strengths.</div><div class="edit2"><span class="tag" id="t-bed" hidden>Image editing slider</span><span class="edit" id="t-edit"></span></div></div>
+      <div class="orig" id="orig" hidden>
+        <div class="olab">Original <span>(click to enlarge)</span></div>
+        <img id="origimg" alt="Original image before the edit">
       </div>
-      <div class="single"><div class="flabel" id="flabel">A</div><div class="view" id="vF"><canvas class="main" id="cF"></canvas></div></div>
     </div>
-
+    <div class="stagecell">
+      <div class="loadbox" id="loadbox" hidden><span id="loadtxt">Loading this comparison…</span><span class="lbar"><i id="loadbar"></i></span></div>
+      <div id="booth">
+        <div class="stage">
+          <div class="side"><h2>A<span class="olab" id="olabA"></span></h2><div class="view" id="vA"><canvas class="main" id="cA"></canvas><canvas class="lens" id="lA" width="260" height="260"></canvas></div></div>
+          <div class="side"><h2>B<span class="olab" id="olabB"></span></h2><div class="view" id="vB"><canvas class="main" id="cB"></canvas><canvas class="lens" id="lB" width="260" height="260"></canvas></div></div>
+        </div>
+        <div class="single"><div class="flabel" id="flabel">A</div><div class="view" id="vF"><canvas class="main" id="cF"></canvas></div></div>
+      </div>
     <div class="scrub">
       <div class="scrubhead"><span>Strength <b id="s-val">–</b> <span id="s-idx"></span></span>
-        <span class="legend"><span>no visible difference</span><span class="grad"></span><span>large difference</span><span>· ▲ = this pair's 3 most different</span></span></div>
+        <span class="legend"><span>same</span><span class="grad"></span><span>very different</span><span>· ▲ = 3 most different</span></span></div>
       <div class="cells" id="cells"></div>
       <div class="marks" id="marks" aria-hidden="true"></div>
     </div>
-    <div class="tools">
-      <button class="small" id="b-play" aria-pressed="true">Paused · Play (Space)</button>
-      <button class="small" id="b-flick">Flicker A/B (F)</button>
-      <button class="small" id="b-orig">Flicker with original (O)</button>
-      <button class="small" id="b-back">Back (⌫)</button>
     </div>
-
-    <div class="answers">
-      <div class="arow"><div class="lab">Smoothness / Consistency<small>Q W E</small></div>
-        <div class="seg" data-q="smooth"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
-      <div class="arow"><div class="lab">Fewer artifacts<small>A S D</small></div>
-        <div class="seg" data-q="artifacts"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
-      <div class="arow"><div class="lab">Better overall<small>Z X C</small></div>
-        <div class="seg" data-q="overall"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
-      <div class="next"><button class="pri" id="b-next">Next (Enter)</button></div>
-      <div class="status" id="status"></div>
+    <div class="sidecol">
+      <div class="tools">
+        <button class="small" id="b-play" aria-pressed="true">Play (Space)</button>
+        <button class="small" id="b-flick">Flicker A/B (F)</button>
+        <button class="small" id="b-orig">Flicker original (O)</button>
+        <button class="small" id="b-back">Back (⌫)</button>
+      </div>
+      <div class="answers">
+        <div class="arow"><div class="lab">Smoothness / Consistency<small>Q W E</small></div>
+          <div class="seg" data-q="smooth"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+        <div class="arow"><div class="lab">Fewer artifacts<small>A S D</small></div>
+          <div class="seg" data-q="artifacts"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+        <div class="arow"><div class="lab">Better overall<small>Z X C</small></div>
+          <div class="seg" data-q="overall"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+        <div class="next"><button class="pri" id="b-next">Next (Enter)</button></div>
+        <div class="status" id="status"></div>
+      </div>
     </div>
+   </div>
   </section>
 
   <section class="done" id="done" hidden>
     <h2 style="margin-top:0;font-size:17px" id="done-h">This part is done</h2>
     <p id="done-note" class="status" style="text-align:left"></p>
-    <p class="row"><button class="pri" id="b-nextpart" type="button" hidden>Continue</button><button id="b-review" type="button">Back to the last trial</button><button id="b-dl2" type="button">Download my answers</button></p>
+    <p class="row"><button class="pri" id="b-nextpart" type="button" hidden>Continue</button><button id="b-review" type="button">Back to the last trial</button><button id="b-dl2" type="button" hidden>Download my answers</button></p>
     <div id="export" hidden>
       <p class="status warn" style="text-align:left">The file could not be downloaded. Copy your answers and send them to the study owner.</p>
       <textarea id="exp" readonly></textarea>
@@ -214,33 +255,32 @@ function progress(){const n=order.filter(t=>answers[t.id]).length;$("m-progress"
 function setOrder(){FORM=H.form(FORMS.n_forms,raterName);OD=FORM?H.orderFor(FORMS,FORM,raterName):null;
   order=OD?OD.trials[PAGE].map(id=>byId[id]).filter(Boolean):[];
   const k=OD?OD.parts.indexOf(PAGE)+1:0,np=OD?OD.parts.length:0;$("m-part").textContent=FORM?("part "+k+" of "+np+" · form "+FORM):"";
-  $("part-note").textContent=FORM?("This is part "+k+" of "+np+" ("+order.length+" comparisons, about "+Math.round(order.length*0.55)+" minutes). You can take a break between parts."):"Enter your name to get your set of comparisons.";
+  $("part-note").textContent=FORM?("Part "+k+" of "+np+": "+H.LABEL[PAGE]+" · "+order.length+" comparisons, about "+Math.round(order.length*0.55)+" min"):"Enter your name to start";
   progress()}
 async function boot(){
   try{const [j,f]=await Promise.all([fetch("trials.json").then(r=>r.json()),fetch("../forms.json").then(r=>r.json())]);
     trials=j.trials;trials.forEach(t=>{byId[t.id]=t});FORMS=f}
-  catch(e){$("start").textContent="Trials failed to load. Reload the page.";return}
+  catch(e){$("intro").hidden=false;$("start").textContent="Trials failed to load. Reload the page.";return}
   answers=H.answers(PAGE);if(!$("rname").value.trim())$("rname").value=raterName;else raterName=$("rname").value.trim();setOrder();
   $("start").disabled=false;$("start").textContent=order.some(t=>answers[t.id])?"Continue":"Start";
   const note=$("store-note");
-  if(CFG.ENDPOINT_URL){note.textContent="Answers are sent to the study owner as you go, and kept in this browser.";note.className="status ok"}
-  else{note.textContent="Answers are kept in this browser. Download them when you finish and send the file to the study owner.";note.className="status warn"}
-  paintSync();H.flushAll(raterName,paintSync)}
-function paintSync(){if(!FORMS)return;const st=H.status(FORMS,FORM,raterName),me=st.parts[PAGE]||{unsent:0},el=$("m-save");let t,c;
-  if(!CFG.ENDPOINT_URL){t="answers kept in this browser only";c="warn"}
-  else if(me.unsent){t=me.unsent+" not yet sent";c="warn"}
-  else{t="all answers saved";c="ok"}
-  el.textContent=t;el.className=c;el.title=me.unsent?"Click to send again":"";
+  note.textContent="";note.className="status";$("b-dl").hidden=true;$("b-dl2").hidden=true;
+  paintSync();H.flushAll(raterName,paintSync);
+  if(!raterName||!H.form(FORMS.n_forms,raterName)){location.replace(H.linkTo("",parseInt(H.QS.get("form")||"0",10),false));return}
+  $("rname").value=raterName;start()}
+function failText(n){return "Could not save "+n+" answer"+(n>1?"s":"")+". Download them and send the file to the study owner."}
+function paintSync(){if(!FORMS)return;const st=H.status(FORMS,FORM,raterName),el=$("m-save");let t,c;
+  const fail=st.unsent>0&&H.anyFailed();
+  if(fail){t=failText(st.unsent);c="warn"}else if(st.unsent){t="saving…";c=""}else{t="saved ✓";c="ok"}
+  el.textContent=t;el.className=c;el.title=st.unsent?"Click to send again":"";$("b-dl").hidden=!fail;$("b-dl2").hidden=!fail;
   if(!$("done").hidden)paintDone(st)}
-function paintDone(st){const dn=$("done-note"),nb=$("b-nextpart"),me=st.parts[PAGE];
+function paintDone(st){const dn=$("done-note"),nb=$("b-nextpart");$("b-review").hidden=true;
   if(st.done){$("done-h").textContent="Done: all "+st.n+" answers saved";
-    dn.textContent="Thank you! Every answer of your form reached the study owner. You can close this page.";dn.className="status ok";nb.hidden=true;return}
-  const nx=H.nextPart(st,PAGE);
-  $("done-h").textContent=me.unsent?"This part is done; "+me.unsent+" answer"+(me.unsent>1?"s":"")+" not yet saved":"This part is done";
-  const parts=st.order.map((p,i)=>"part "+(i+1)+" ("+H.LABEL[p]+"): "+st.parts[p].answered+" / "+st.parts[p].n+(st.parts[p].unsent?", "+st.parts[p].unsent+" not yet saved":"")).join(" · ");
-  dn.textContent=(st.unsent?"Some answers have not reached the study owner yet; keep this page open, they are re-sent automatically (or click the red counter). ":"")+(nx?"You can take a break here. ":"")+parts;
-  dn.className="status "+(st.unsent?"warn":"ok");
-  if(nx){nb.hidden=false;nb.textContent="Continue with part "+(st.order.indexOf(nx)+1)+": "+H.LABEL[nx];nb.onclick=()=>{location.href=H.linkTo(nx,FORM)}}
+    dn.textContent="Thank you! You can close this page.";dn.className="status ok";nb.hidden=true;return}
+  const nx=H.nextPart(st,PAGE),fail=st.unsent>0&&H.anyFailed(),k=st.order.indexOf(PAGE)+1;
+  $("done-h").textContent="Part "+k+" of "+st.order.length+" done."+(nx?" Take a break if you like.":"");
+  dn.textContent=fail?failText(st.unsent):(st.unsent?"Saving…":"");dn.className="status"+(fail?" warn":"");
+  if(nx){nb.hidden=false;nb.textContent="Continue";nb.onclick=()=>{location.href=H.linkTo(nx,FORM)}}
   else nb.hidden=true}
 function save(a){answers[a.trial]=a;if(!H.store(PAGE,a))setStatus("This browser refused to store the answer. Keep this page open until all answers are sent.","warn");
   paintSync();H.flush(PAGE,raterName,paintSync)}
@@ -255,9 +295,10 @@ function download(){const text=JSON.stringify(exportObj(),null,1);
     if(!$("trial").hidden)setStatus("File downloaded: "+fn,"ok")}
   catch(e){$("export").hidden=false;$("exp").value=text}}
 setInterval(()=>{if(FORMS&&H.status(FORMS,FORM,raterName).unsent)H.flushAll(raterName,paintSync)},30000);
-function start(){const nm=$("rname").value.trim();
+async function start(){const nm=$("rname").value.trim();
   if(!nm){$("store-note").textContent="Please enter a name to start.";$("store-note").className="status warn";$("rname").focus();return}
-  raterName=nm;H.setName(nm);setOrder();
+  raterName=nm;H.setName(nm);const sb=$("start");sb.disabled=true;sb.textContent="Starting…";
+  await H.assign(FORMS.n_forms,nm);sb.disabled=false;sb.textContent="Start";setOrder();
   if(!order.length){$("store-note").textContent="No comparisons found for this form.";$("store-note").className="status warn";return}
   $("intro").hidden=true;const i=order.findIndex(t=>!answers[t.id]);idx=i<0?order.length:i;show();H.flushAll(raterName,paintSync)}
 
@@ -289,11 +330,11 @@ async function show(){
   $("done").hidden=true;$("trial").hidden=false;
   cur=order[idx];usedZoom=false;usedFlick=false;usedOrig=false;dirty=false;lensPos=null;visited=new Set();
   $("lA").style.display="none";$("lB").style.display="none";
-  const e=$("t-edit");e.textContent="";e.appendChild(document.createTextNode("Edit: "));const b=document.createElement("b");b.textContent=cur.edit||"";e.appendChild(b);
+  const e=$("t-edit");e.textContent="";e.appendChild(document.createTextNode("Edit: "));const b=document.createElement("b");b.textContent=cur.axes?("↑↓ "+cur.axes[0]+"   ←→ "+cur.axes[1]):(cur.edit||"");e.appendChild(b);
   const prev=answers[cur.id];pick=prev?{smooth:prev.smooth,artifacts:prev.artifacts,overall:prev.overall}:{smooth:"T",artifacts:"T",overall:"T"};
   paintPicks();setStatus(prev?"Answered before; change any answer and press Next.":"");
   const oi=$("origimg");oi.classList.remove("big");$("orig").hidden=!(cur.source&&cur.source.file);
-  const g=G(cur);["cA","cB","cF"].forEach(id=>{const c=$(id);c.width=g.w;c.height=g.h;c.getContext("2d").clearRect(0,0,g.w,g.h)});
+  const g=G(cur);["cA","cB","cF"].forEach(id=>{const c=$(id);c.width=g.w;c.height=g.h;c.getContext("2d").clearRect(0,0,g.w,g.h)});fitStage();
   buildCells(cur);si=0;dir=1;want=0;shown=-1;seekBusy=false;seekGen++;lastKey="";$("b-orig").hidden=!cur.source;setPlaying(false);progress();
   // loading gate: both files (and the original image) are downloaded whole before the trial becomes interactive
   const tok=++loadTok,t0=performance.now();loading=true;$("loadbox").hidden=false;$("booth").classList.add("wait");setLoad(0,1);
@@ -305,7 +346,7 @@ async function show(){
   if(tok!==loadTok)return;
   await new Promise(res=>{seekTo(0,res)});
   if(tok!==loadTok)return;
-  loading=false;$("loadbox").hidden=true;$("booth").classList.remove("wait");visited.add(0);markCell();
+  loading=false;$("loadbox").hidden=true;$("booth").classList.remove("wait");visited.add(0);markCell();fitStage();
   PERF.ready.push({id:cur.id,ms:Math.round(performance.now()-t0)});tStart=performance.now();loop();
   const nx=order[idx+1];if(nx){const gn=G(nx);H.prefetch([gn.fileA,gn.fileB].concat(nx.source&&nx.source.file?[nx.source.file]:[]))}
   else H.warmNextPart(FORMS,FORM,raterName,PAGE);
@@ -327,11 +368,20 @@ function pump(cb){if(!cur)return;if(seekBusy){if(cb)cb();return}const g=G(cur),t
   try{va.currentTime=t;vb.currentTime=t}catch(e){fin=true;clearTimeout(wd);seekBusy=false;if(cb)cb()}}
 function seek(){seekTo(si);visited.add(si);markCell()}
 function goTo(k){si=Math.max(0,Math.min(cur.sweep.n-1,k));seek()}
-function setPlaying(p){playing=p;clearInterval(stepTimer);const pb=$("b-play");pb.textContent=playing?"Playing · Pause (Space)":"Paused · Play (Space)";pb.setAttribute("aria-pressed",playing?"false":"true");
+function setPlaying(p){playing=p;clearInterval(stepTimer);const pb=$("b-play");pb.textContent=playing?"Pause (Space)":"Play (Space)";pb.setAttribute("aria-pressed",playing?"false":"true");
   if(playing){stepTimer=setInterval(()=>{if(!cur)return;const n=cur.sweep.n;if(n<2)return;
     if(si+dir<0||si+dir>n-1)dir=-dir;si+=dir;seek()},250)}}
 function ready(v){return v.readyState>=2&&!v.seeking}
 function G(t){return t.sweep||t.grid}
+// v2: size both canvases to the largest box that fits the stage (aspect kept; Faces = squares); the lens follows the canvas size
+function fitStage(){if(!cur)return;const g=(cur.sweep||cur.grid||cur.clips);const sc=document.querySelector(".stagecell");if(!sc)return;
+  const r=sc.getBoundingClientRect(),flick=$("booth").classList.contains("flick"),lab=26,gap=12,st=sc.querySelector(".scrub");
+  const sh=st?st.getBoundingClientRect().height+8:0;
+  const bw=flick?r.width:(r.width-gap)/2,bh=Math.max(80,r.height-lab-6-sh),s=Math.min(bw/g.w,bh/g.h,2);
+  const cw=Math.max(40,Math.floor(g.w*s)),ch=Math.max(30,Math.floor(g.h*s));
+  ["cA","cB","cF"].forEach(id=>{const c=$(id);c.style.width=cw+"px";c.style.height=ch+"px"})}
+window.addEventListener("resize",()=>fitStage());
+
 function loop(){const t=cur;const draw=()=>{if(cur!==t)return;
   const va=$("vsA"),vb=$("vsB"),g=t.sweep;
   const sk=[shown,flickOn,flickShow,origOn,origShow,lensPos?Math.round(lensPos.fx*400)+","+Math.round(lensPos.fy*400):""].join("|");
@@ -359,21 +409,21 @@ function drawLens(){if(!lensPos||!cur)return;const g=cur.sweep;
 let origOn=false,origShow=false,origTimer=null,usedOrig=false;
 function toggleOrig(){if(!cur||!cur.source)return;origOn?stopOrig():startOrig()}
 function startOrig(){stopFlick();setPlaying(false);origOn=true;usedOrig=true;origShow=true;
-  origTimer=setInterval(()=>{origShow=!origShow},matchMedia("(prefers-reduced-motion: reduce)").matches?1200:600);$("b-orig").textContent="Stop original flicker (O)";$("b-orig").classList.add("on")}
-function stopOrig(){origOn=false;origShow=false;clearInterval(origTimer);$("b-orig").textContent="Flicker with original (O)";$("b-orig").classList.remove("on")}
+  origTimer=setInterval(()=>{origShow=!origShow},matchMedia("(prefers-reduced-motion: reduce)").matches?1200:600);$("b-orig").textContent="Stop (O)";$("b-orig").classList.add("on")}
+function stopOrig(){origOn=false;origShow=false;clearInterval(origTimer);$("b-orig").textContent="Flicker original (O)";$("b-orig").classList.remove("on")}
 function toggleFlick(){flickOn?stopFlick():startFlick()}
-function startFlick(){setPlaying(false);flickOn=true;usedFlick=true;$("booth").classList.add("flick");flickShow=0;
+function startFlick(){setTimeout(fitStage,0);setPlaying(false);flickOn=true;usedFlick=true;$("booth").classList.add("flick");flickShow=0;
   flickTimer=setInterval(()=>{flickShow^=1},matchMedia("(prefers-reduced-motion: reduce)").matches?1200:600);$("b-flick").textContent="Stop flicker (F)"}
-function stopFlick(){flickOn=false;clearInterval(flickTimer);$("booth").classList.remove("flick");$("b-flick").textContent="Flicker A/B (F)"}
+function stopFlick(){setTimeout(fitStage,0);flickOn=false;clearInterval(flickTimer);$("booth").classList.remove("flick");$("b-flick").textContent="Flicker A/B (F)"}
 
 function setPick(q,v){if(pick[q]!==v)dirty=true;pick[q]=v;paintPicks()}
 function answerOf(via){return {trial:cur.id,part:PAGE,part_order:OD?OD.parts.join(","):"",part_idx:OD?OD.parts.indexOf(PAGE)+1:0,smooth:pick.smooth,artifacts:pick.artifacts,overall:pick.overall,rt_ms:Math.round(performance.now()-tStart),
-    zoom:usedZoom,flicker:usedFlick,orig:usedOrig,visited:[...visited].sort((x,y)=>x-y),name:raterName,at:new Date().toISOString(),v:1,via:via,form:FORM,pos:idx+1}}
+    assign:H.assignMode(raterName),zoom:usedZoom,flicker:usedFlick,orig:usedOrig,visited:[...visited].sort((x,y)=>x-y),name:raterName,at:new Date().toISOString(),v:1,via:via,form:FORM,pos:idx+1}}
 function next(){if(!cur||loading)return;save(answerOf("next"));idx++;show()}
 // Back keeps what was changed on this visit; an untouched, never-answered trial is not recorded as answered
 function back(){if(idx<=0)return;if(cur&&!$("trial").hidden&&dirty)save(answerOf("back"));idx--;show()}
 document.querySelectorAll(".seg").forEach(s=>s.querySelectorAll("button").forEach(bt=>bt.onclick=()=>setPick(s.dataset.q,bt.dataset.v)));
-$("origimg").onclick=()=>$("origimg").classList.toggle("big");
+$("origimg").onclick=()=>{$("origimg").classList.toggle("big");fitStage()};$("origimg").addEventListener("load",()=>fitStage());
 $("b-next").onclick=next;$("b-back").onclick=back;$("b-flick").onclick=()=>{stopOrig();toggleFlick()};$("b-orig").onclick=toggleOrig;
 $("b-play").onclick=()=>setPlaying(!playing);$("start").onclick=start;
 $("b-dl").onclick=download;$("b-dl2").onclick=download;$("b-review").onclick=back;$("m-save").onclick=()=>H.flushAll(raterName,paintSync);

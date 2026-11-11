@@ -158,6 +158,17 @@ h1{font-size:20px}
 .pcell{aspect-ratio:auto;border-radius:1px;border:1px solid transparent;padding:0;font-size:9px;line-height:1;cursor:pointer;min-width:0;min-height:0}
 .pcell.cur{border:2px solid var(--ink);outline:2px solid var(--accent);outline-offset:0}
 .legend{font-size:13px}
+/* v2e "tall" arrangement: left column = tips, source, strength strip / grid; middle = A and B at full height; right = answers */
+#trial .tw.tall{grid-template-columns:clamp(210px,17vw,300px) minmax(0,1fr) clamp(250px,19vw,330px);grid-template-rows:minmax(0,1fr)}
+.tw.tall .head{grid-column:1;grid-row:1;flex-direction:column;align-items:stretch;gap:10px;overflow-y:auto;overflow-x:hidden}
+.tw.tall .tipsbox{flex:0 0 auto;max-width:none;font-size:15px}.tw.tall .tipl li{white-space:normal}.tw.tall .tipsh{font-size:16px}
+.tw.tall .tipsbox .edit2{font-size:14px}
+.tw.tall .head .orig{align-items:flex-start}.tw.tall .head .orig img{height:auto;width:auto;max-width:100%;max-height:16vh;background:none}
+.tw.tall .scrub .cell{height:24px}
+.tw.tall .head .scrub2{flex-direction:column;align-items:flex-start}
+.tw.tall .stagecell{grid-column:2;grid-row:1}
+.tw.tall .sidecol{grid-column:3;grid-row:1}
+.tw.tall .scrub .scrubhead{font-size:14px}
 @media (max-width:900px){#trial .tw{grid-template-columns:1fr;height:auto}.sidecol{grid-column:1;grid-row:auto}.head{flex-wrap:wrap}}
 </style>
 </head>
@@ -182,7 +193,7 @@ h1{font-size:20px}
   <section id="trial" hidden>
    <div class="tw">
     <div class="head">
-      <div class="tipsbox" id="tips"><div class="tipsh">Tips</div><ol class="tipl"><li>Step with <kbd>←</kbd> <kbd>→</kbd>: smoothness, consistency.</li><li>Flicker A/B <kbd>F</kbd> shows small differences.</li><li>Hover to zoom in (2×, same spot on A and B).</li><li>Colour: how different A and B are.</li></ol><div class="edit2"><span class="tag" id="t-bed" hidden>Image editing slider</span><span class="edit" id="t-edit"></span></div></div>
+      <div class="tipsbox" id="tips"><div class="tipsh">Tips</div><ol class="tipl"><li>Step with <kbd>←</kbd> <kbd>→</kbd>: smoothness, consistency.</li><li>Flicker A/B <kbd>F</kbd> shows small differences.</li><li>Hover to zoom in (2×); also works while flickering.</li><li>Colour: how different A and B are.</li></ol><div class="edit2"><span class="tag" id="t-bed" hidden>Image editing slider</span><span class="edit" id="t-edit"></span></div></div>
       <div class="orig" id="orig" hidden>
         <div class="olab">Original</div>
         <img id="origimg" alt="Original image before the edit" title="Click to enlarge">
@@ -195,7 +206,7 @@ h1{font-size:20px}
           <div class="side"><h2>A<span class="olab" id="olabA"></span></h2><div class="view" id="vA"><canvas class="main" id="cA"></canvas><canvas class="lens" id="lA" width="260" height="260"></canvas></div></div>
           <div class="side"><h2>B<span class="olab" id="olabB"></span></h2><div class="view" id="vB"><canvas class="main" id="cB"></canvas><canvas class="lens" id="lB" width="260" height="260"></canvas></div></div>
         </div>
-        <div class="single"><div class="flabel" id="flabel">A</div><div class="view" id="vF"><canvas class="main" id="cF"></canvas></div></div>
+        <div class="single"><div class="flabel" id="flabel">A</div><div class="view" id="vF"><canvas class="main" id="cF"></canvas><canvas class="lens" id="lF" width="260" height="260"></canvas></div></div>
       </div>
     <div class="scrub">
       <div class="scrubhead"><span>Strength <b id="s-val">–</b> <span id="s-idx"></span></span>
@@ -374,11 +385,22 @@ function setPlaying(p){playing=p;clearInterval(stepTimer);const pb=$("b-play");p
     if(si+dir<0||si+dir>n-1)dir=-dir;si+=dir;seek()},250)}}
 function ready(v){return v.readyState>=2&&!v.seeking}
 function G(t){return t.sweep||t.grid}
-// v2: size both canvases to the largest box that fits the stage (aspect kept; Faces = squares); the lens follows the canvas size
-function fitStage(){if(!cur)return;const g=(cur.sweep||cur.grid||cur.clips);const sc=document.querySelector(".stagecell");if(!sc)return;
-  const r=sc.getBoundingClientRect(),flick=$("booth").classList.contains("flick"),lab=26,gap=12,st=sc.querySelector(".scrub");
+// v2: size both canvases to the largest box that fits the stage (aspect kept; Faces = squares); the lens follows the canvas size.
+// v2e: two arrangements, chosen per trial and window size: "wide" (tips / source / grid across the top, A and B below, strength strip
+// under them) and "tall" (tips, source and strip stacked in a left column, A and B at full height in the middle); the one that gives
+// the larger A / B wins (re-evaluated on every trial and on resize).
+let forcedMode=null,curMode="";
+function placeFor(mode){const tw=document.querySelector("#trial .tw");if(!tw)return;tw.classList.toggle("tall",mode==="tall");
+  const st=document.querySelector(".scrub"),sc=document.querySelector(".stagecell"),hd=document.querySelector("#trial .head");
+  if(st){if(mode==="tall"){if(st.parentNode!==hd)hd.appendChild(st)}else if(st.parentNode!==sc)sc.appendChild(st)}}
+// the arrangement is chosen for the side-by-side view (asSingle = false), so turning flicker on / off never changes the layout
+function scaleFor(mode,asSingle){const g=(cur.sweep||cur.grid||cur.clips);placeFor(mode);const sc=document.querySelector(".stagecell");
+  const r=sc.getBoundingClientRect(),flick=asSingle,lab=26,gap=12,st=sc.querySelector(".scrub");
   const sh=st?st.getBoundingClientRect().height+8:0;
-  const bw=flick?r.width:(r.width-gap)/2,bh=Math.max(80,r.height-lab-6-sh),s=Math.min(bw/g.w,bh/g.h,2);
+  const bw=flick?r.width:(r.width-gap)/2,bh=Math.max(80,r.height-lab-6-sh);return Math.min(bw/g.w,bh/g.h,2)}
+function fitStage(){if(!cur)return;const g=(cur.sweep||cur.grid||cur.clips);if(!document.querySelector(".stagecell"))return;
+  let mode=forcedMode;if(!mode){const sw=scaleFor("wide",false),stl=scaleFor("tall",false);mode=stl>sw*1.03?"tall":"wide"}
+  const s=scaleFor(mode,$("booth").classList.contains("flick"));curMode=mode;
   const cw=Math.max(40,Math.floor(g.w*s)),ch=Math.max(30,Math.floor(g.h*s));
   ["cA","cB","cF"].forEach(id=>{const c=$(id);c.style.width=cw+"px";c.style.height=ch+"px"})}
 window.addEventListener("resize",()=>fitStage());
@@ -398,14 +420,22 @@ function loop(){const t=cur;const draw=()=>{if(cur!==t)return;
   raf=requestAnimationFrame(draw)};draw()}
 // lens
 function onMove(ev){const r=ev.currentTarget.getBoundingClientRect();lensPos={fx:(ev.clientX-r.left)/r.width,fy:(ev.clientY-r.top)/r.height};usedZoom=true}
-function onLeave(){lensPos=null;$("lA").style.display="none";$("lB").style.display="none"}
-function drawLens(){if(!lensPos||!cur)return;const g=cur.sweep;
-  [["vA","cA","lA"],["vB","cB","lB"]].forEach(([vid,cid,lid])=>{const v=$(vid),c=$(cid),l=$(lid),r=v.getBoundingClientRect();
+function onLeave(){lensPos=null;$("lA").style.display="none";$("lB").style.display="none";$("lF").style.display="none"}
+function drawLens(){if(!lensPos||!cur)return;const g=(cur.sweep||cur.grid||cur.clips);
+  // in A/B flicker the single view is visible: its lens alternates with it (same region, 2x of full resolution)
+  const sets=flickOn?[["vF","cF","lF"]]:[["vA","cA","lA"],["vB","cB","lB"]];
+  ["lA","lB","lF"].forEach(id=>{if(!sets.some(s=>s[2]===id))$(id).style.display="none"});
+  sets.forEach(([vid,cid,lid])=>{const v=$(vid),c=$(cid),l=$(lid),r=v.getBoundingClientRect();
     const px=lensPos.fx*r.width,py=lensPos.fy*r.height;l.style.display="block";
     l.style.left=Math.min(Math.max(px-130,0),Math.max(r.width-260,0))+"px";l.style.top=Math.min(Math.max(py-130,0),Math.max(r.height-260,0))+"px";
     const x=l.getContext("2d");x.imageSmoothingEnabled=false;x.fillStyle="#808280";x.fillRect(0,0,260,260);
     x.drawImage(c,lensPos.fx*g.w-65,lensPos.fy*g.h-65,130,130,0,0,260,260)})}
-["vA","vB"].forEach(id=>{$(id).addEventListener("mousemove",onMove);$(id).addEventListener("mouseleave",onLeave)});
+["vA","vB","vF"].forEach(id=>{$(id).addEventListener("mousemove",onMove);$(id).addEventListener("mouseleave",onLeave)});
+// keep the lens at the pointer when the visible view changes (flicker on / off) without a pointer move
+let lastPtr=null;document.addEventListener("mousemove",ev=>{lastPtr={x:ev.clientX,y:ev.clientY}});
+function relens(){if(!lastPtr)return;let hit=null;for(const id of (flickOn?["vF"]:["vA","vB"])){const r=$(id).getBoundingClientRect();
+    if(r.width&&lastPtr.x>=r.left&&lastPtr.x<=r.right&&lastPtr.y>=r.top&&lastPtr.y<=r.bottom)hit={fx:(lastPtr.x-r.left)/r.width,fy:(lastPtr.y-r.top)/r.height}}
+  lensPos=hit;if(!hit)["lA","lB","lF"].forEach(id=>$(id).style.display="none")}
 // flicker each side with the original (unedited) image
 let origOn=false,origShow=false,origTimer=null,usedOrig=false;
 function toggleOrig(){if(!cur||!cur.source)return;origOn?stopOrig():startOrig()}
@@ -413,9 +443,9 @@ function startOrig(){stopFlick();setPlaying(false);origOn=true;usedOrig=true;ori
   origTimer=setInterval(()=>{origShow=!origShow},matchMedia("(prefers-reduced-motion: reduce)").matches?1200:600);$("b-orig").textContent="Stop (O)";$("b-orig").classList.add("on")}
 function stopOrig(){origOn=false;origShow=false;clearInterval(origTimer);$("b-orig").textContent="Flicker original (O)";$("b-orig").classList.remove("on")}
 function toggleFlick(){flickOn?stopFlick():startFlick()}
-function startFlick(){setTimeout(fitStage,0);setPlaying(false);flickOn=true;usedFlick=true;$("booth").classList.add("flick");flickShow=0;
+function startFlick(){setTimeout(()=>{fitStage();relens();lastKey="";},0);setPlaying(false);flickOn=true;usedFlick=true;$("booth").classList.add("flick");flickShow=0;
   flickTimer=setInterval(()=>{flickShow^=1},matchMedia("(prefers-reduced-motion: reduce)").matches?1200:600);$("b-flick").textContent="Stop flicker (F)"}
-function stopFlick(){setTimeout(fitStage,0);flickOn=false;clearInterval(flickTimer);$("booth").classList.remove("flick");$("b-flick").textContent="Flicker A/B (F)"}
+function stopFlick(){setTimeout(()=>{fitStage();relens();lastKey="";},0);flickOn=false;clearInterval(flickTimer);$("booth").classList.remove("flick");$("b-flick").textContent="Flicker A/B (F)"}
 
 function setPick(q,v){if(pick[q]!==v)dirty=true;pick[q]=v;paintPicks()}
 function answerOf(via){return {trial:cur.id,part:PAGE,part_order:OD?OD.parts.join(","):"",part_idx:OD?OD.parts.indexOf(PAGE)+1:0,smooth:pick.smooth,artifacts:pick.artifacts,overall:pick.overall,rt_ms:Math.round(performance.now()-tStart),
@@ -444,7 +474,7 @@ document.addEventListener("keydown",ev=>{
   else if(k==="f"){stopOrig();toggleFlick()}
   else if(k==="o"){toggleOrig()}
 });
-window.STUDY_TEST={perf:PERF,state:()=>({loading:loading,shown:shown,study:STUDY,page:PAGE,form:FORM,n:order.length,idx:idx,trial:cur&&cur.id,si:si,answers:answers,queue:H.queue(PAGE),
+window.STUDY_TEST={goto:id=>{const i=order.findIndex(t=>t.id===id);if(i>=0){idx=i;show()}},forceMode:m=>{forcedMode=m||null;fitStage()},mode:()=>curMode,perf:PERF,state:()=>({loading:loading,shown:shown,study:STUDY,page:PAGE,form:FORM,n:order.length,idx:idx,trial:cur&&cur.id,si:si,answers:answers,queue:H.queue(PAGE),
   rid:H.rid(),name:raterName,order:order.map(t=>t.id),playing:playing,status:FORMS?H.status(FORMS,FORM):null,
   times:[$("vsA").currentTime,$("vsB").currentTime],done:!$("done").hidden,doneText:$("done-h").textContent+" | "+$("done-note").textContent}),exportObj:exportObj};
 boot();

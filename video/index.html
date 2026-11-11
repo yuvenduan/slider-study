@@ -165,6 +165,7 @@ h1{font-size:20px}
 .tw.tall .sidecol{grid-column:3;grid-row:1}
 .tw.tall .scrub .scrubhead{font-size:14px}
 @media (max-width:900px){#trial .tw{grid-template-columns:1fr;height:auto}.sidecol{grid-column:1;grid-row:auto}.head{flex-wrap:wrap}}
+.next button.off{opacity:.55}.seg button[data-v=T]{flex:1.7}
 </style>
 </head>
 <body>
@@ -215,11 +216,11 @@ h1{font-size:20px}
       </div>
       <div class="answers">
         <div class="arow"><div class="lab">Smoothness / Consistency<small>Q W E</small></div>
-          <div class="seg" data-q="smooth"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+          <div class="seg" data-q="smooth"><button data-v="A">A</button><button data-v="T">No preference</button><button data-v="B">B</button></div></div>
         <div class="arow"><div class="lab">Fewer artifacts<small>A S D</small></div>
-          <div class="seg" data-q="artifacts"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+          <div class="seg" data-q="artifacts"><button data-v="A">A</button><button data-v="T">No preference</button><button data-v="B">B</button></div></div>
         <div class="arow"><div class="lab">Better overall<small>Z X C</small></div>
-          <div class="seg" data-q="overall"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+          <div class="seg" data-q="overall"><button data-v="A">A</button><button data-v="T">No preference</button><button data-v="B">B</button></div></div>
         <div class="next"><button class="pri" id="b-next">Next (Enter)</button></div>
         <div class="status" id="status"></div>
       </div>
@@ -380,7 +381,7 @@ async function show(){
   cur=order[idx];usedZoom=false;usedFlick=false;usedPause=false;dirty=false;paused=false;holdT=0;paintPause();lensPos=null;visited=new Set();dir=1;si=0;shownK=-1;seekBusy=false;seekGen++;
   $("lA").style.display="none";$("lB").style.display="none";
   const e=$("t-edit");e.textContent="";e.appendChild(document.createTextNode("Edit: "));const b=document.createElement("b");b.textContent=cur.edit||"";e.appendChild(b);
-  const prev=answers[cur.id];pick=prev?{smooth:prev.smooth,artifacts:prev.artifacts,overall:prev.overall}:{smooth:"T",artifacts:"T",overall:"T"};
+  const prev=answers[cur.id];pick=prev?{smooth:prev.smooth,artifacts:prev.artifacts,overall:prev.overall}:{};
   paintPicks();setStatus(prev?"Answered before; change any answer and press Next.":"");
   const g=cur.clips;["cA","cB","cF"].forEach(id=>{const c=$(id);c.width=g.w;c.height=g.h;c.getContext("2d").clearRect(0,0,g.w,g.h)});fitStage();
   buildCells(cur);setAuto(true);progress();
@@ -397,7 +398,8 @@ async function show(){
 }
 function setLoad(a,b){const f=b?Math.min(1,a/b):0;$("loadbar").style.width=Math.round(100*f)+"%";
   $("loadtxt").textContent="Loading this comparison… "+(b>1?Math.round(a/1e6*10)/10+" of "+Math.round(b/1e6*10)/10+" MB":"")}
-function paintPicks(){document.querySelectorAll(".seg").forEach(s=>{const q=s.dataset.q;
+function complete(){return ["smooth","artifacts","overall"].every(q=>pick[q])}
+function paintPicks(){const nb=$("b-next");if(nb)nb.classList.toggle("off",!complete());document.querySelectorAll(".seg").forEach(s=>{const q=s.dataset.q;
   s.querySelectorAll("button").forEach(bt=>bt.classList.toggle("on",pick[q]===bt.dataset.v))})}
 function ready(v){return v.readyState>=2&&!v.seeking}
 function loop(){const t=cur;const draw=()=>{if(cur!==t)return;tick();const va=$("vsA"),vb=$("vsB"),g=t.clips;
@@ -431,10 +433,10 @@ function stopFlick(){setTimeout(()=>{fitStage();relens();},0);flickOn=false;clea
 function setPick(q,v){if(pick[q]!==v)dirty=true;pick[q]=v;paintPicks()}
 function answerOf(via){return {trial:cur.id,part:PAGE,part_order:OD?OD.parts.join(","):"",part_idx:OD?OD.parts.indexOf(PAGE)+1:0,
     smooth:pick.smooth,artifacts:pick.artifacts,overall:pick.overall,rt_ms:Math.round(performance.now()-tStart),
-    assign:H.assignMode(raterName),zoom:usedZoom,flicker:usedFlick,pause:usedPause,visited:[...visited].sort((x,y)=>x-y),name:raterName,at:new Date().toISOString(),v:1,via:via,form:FORM,pos:idx+1}}
-function next(){if(!cur||loading)return;save(answerOf("next"));idx++;show()}
+    fv:(FORMS&&FORMS.version)||1,assign:H.assignMode(raterName),zoom:usedZoom,flicker:usedFlick,pause:usedPause,visited:[...visited].sort((x,y)=>x-y),name:raterName,at:new Date().toISOString(),v:1,via:via,form:FORM,pos:idx+1}}
+function next(){if(!cur||loading)return;if(!complete()){setStatus("Please choose an answer for all three questions.","warn");return}save(answerOf("next"));idx++;show()}
 // Back keeps what was changed on this visit; an untouched, never-answered trial is not recorded as answered
-function back(){if(idx<=0)return;if(cur&&!$("trial").hidden&&dirty&&!loading)save(answerOf("back"));idx--;show()}
+function back(){if(idx<=0)return;if(cur&&!$("trial").hidden&&dirty&&!loading)if(complete())save(answerOf("back"));idx--;show()}
 document.querySelectorAll(".seg").forEach(s=>s.querySelectorAll("button").forEach(bt=>bt.onclick=()=>setPick(s.dataset.q,bt.dataset.v)));
 $("b-next").onclick=next;$("b-back").onclick=back;$("b-flick").onclick=toggleFlick;
 $("b-auto").onclick=()=>setAuto(!auto);$("b-pause").onclick=()=>setPaused(!paused);$("start").onclick=start;

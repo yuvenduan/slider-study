@@ -268,7 +268,7 @@ function progress(){const n=order.filter(t=>answers[t.id]).length;$("m-progress"
 function setOrder(){FORM=H.form(FORMS.n_forms,raterName);OD=FORM?H.orderFor(FORMS,FORM,raterName):null;
   order=OD?OD.trials[PAGE].map(id=>byId[id]).filter(Boolean):[];
   const k=OD?OD.parts.indexOf(PAGE)+1:0,np=OD?OD.parts.length:0;$("m-part").textContent=FORM?("part "+k+" of "+np+" · form "+FORM):"";
-  $("part-note").textContent=FORM?("Part "+k+" of "+np+": "+H.LABEL[PAGE]+" · "+order.length+" comparisons, about "+Math.round(order.length*0.55)+" min"):"Enter your name to start";
+  $("part-note").textContent=FORM?("Part "+k+" of "+np+": "+H.LABEL[PAGE]+" · "+order.length+" comparisons"):"Enter your name to start";
   progress()}
 async function boot(){
   try{const [j,f]=await Promise.all([fetch("trials.json").then(r=>r.json()),fetch("../forms.json").then(r=>r.json())]);

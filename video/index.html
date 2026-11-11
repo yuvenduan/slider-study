@@ -113,8 +113,9 @@ h1{font-size:20px}
 #trial .tw{display:grid;grid-template-columns:minmax(0,1fr) clamp(250px,19vw,330px);grid-template-rows:auto minmax(0,1fr);
   gap:8px 16px;height:calc(100vh - 64px)}
 .head{grid-column:1;grid-row:1;display:flex;gap:18px;align-items:center;min-height:0}
-.tipsbox{font-size:17px;line-height:1.45;max-width:520px;flex:0 1 520px}
+.tipsbox{font-size:17px;line-height:1.45;max-width:620px;flex:0 1 620px}
 .tipsbox .tline{margin:0 0 3px}.tipsbox kbd{font-size:15px;padding:0 6px}
+.tipsh{font-weight:600;font-size:17px;margin:0 0 2px}.tipl{margin:0;padding-left:24px}.tipl li{margin:0 0 2px;line-height:1.35;white-space:nowrap}
 .tipsbox .edit2{color:var(--muted);font-size:16px;margin-top:6px}.tipsbox .edit2 b{color:var(--ink);font-weight:600}
 .head .orig{margin:0;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px}
 .head .orig img{height:var(--headh);width:auto;max-width:none;max-height:none}
@@ -176,7 +177,7 @@ h1{font-size:20px}
   <section id="trial" hidden>
    <div class="tw">
     <div class="head">
-      <div class="tipsbox" id="tips"><div class="tline">Pause the video <kbd>Space</kbd>. Step through strengths with <kbd>←</kbd> <kbd>→</kbd>; look at smoothness and consistency.</div><div class="tline">A/B flicker <kbd>F</kbd> helps reveal small differences.</div><div class="tline">Colour shows how different the two are across strengths.</div><div class="edit2"><span class="tag" id="t-bed" hidden>Video slider</span><span class="edit" id="t-edit"></span></div></div>
+      <div class="tipsbox" id="tips"><div class="tipsh">Tips</div><ol class="tipl"><li>Pause the video: <kbd>Space</kbd>.</li><li>Step with <kbd>←</kbd> <kbd>→</kbd>: smoothness, consistency.</li><li>Flicker A/B <kbd>F</kbd> shows small differences.</li><li>Hover to zoom in (2×, same spot on A and B).</li><li>Colour: how different A and B are.</li></ol><div class="edit2"><span class="tag" id="t-bed" hidden>Video slider</span><span class="edit" id="t-edit"></span></div></div>
     </div>
     <div class="stagecell">
       <div class="loadbox" id="loadbox" hidden><span id="loadtxt">Loading this comparison…</span><span class="lbar"><i id="loadbar"></i></span></div>

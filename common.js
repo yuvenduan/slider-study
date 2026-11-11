@@ -6,7 +6,11 @@ const QS=(()=>{try{return new URLSearchParams(location.search)}catch(e){return n
 // ?study=test... sends to a test tab (only names starting with "test" are accepted) and keeps its own browser storage
 const QSTUDY=(QS.get("study")||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,40);
 const STUDY=/^test/.test(QSTUDY)?QSTUDY:(CFG.STUDY||"study_v1");
-const PFX="hs2v1_"+STUDY+"_";
+// storage keys carry the forms version: a browser holding progress of an earlier forms version starts cleanly (one-line notice)
+const FV=CFG.FORMS_VERSION||1,BASE="hs2v1_"+STUDY+"_",PFX=FV>1?BASE+"f"+FV+"_":BASE;
+let oldName="",updated=false;
+try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(BASE)&&!k.startsWith(PFX))ks.push(k)}
+  if(FV>1&&ks.length){try{oldName=JSON.parse(localStorage.getItem(BASE+"name")||'""')||""}catch(e){}ks.forEach(k=>localStorage.removeItem(k));updated=true}}catch(e){}
 const PAGES=["grag","unislider","faces","video"];
 const LABEL={grag:"Image sliders, set 1",unislider:"Image sliders, set 2",faces:"Two-edit face sliders",video:"Video sliders"};
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}
@@ -23,6 +27,8 @@ function normName(n){return String(n||"").trim().replace(/\s+/g," ").toLowerCase
 function formFor(name,n){return (fnv(normName(name))%n)+1}
 const H={STUDY:STUDY,CFG:CFG,QS:QS,PAGES:PAGES,LABEL:LABEL,rid:()=>rid,rcode:()=>rcode,formFor:formFor,lsGet:lsGet,lsSet:lsSet};
 H.name=()=>lsGet(PFX+"name","")||"";
+H.updatedNotice=updated;H.FV=FV;
+if(updated&&oldName&&!H.name())lsSet(PFX+"name",oldName);
 H.setName=n=>lsSet(PFX+"name",String(n).trim().slice(0,60));
 // ---- form assignment (v2, 2026-11-11): ONE link for everyone ----
 // Order: ?form=k in the URL (mode "link") > the assignment stored in this browser for this name > (TEST_ names: from the name hash,

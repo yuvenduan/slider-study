@@ -5,5 +5,6 @@ window.STUDY_CONFIG = {
   ENDPOINT_URL: "https://script.google.com/macros/s/AKfycbzhFomNoUuUoL94lp9omxvXJcLNCvS8GzZFud3iL46SoRLfcOoX8KZJ9CFSgnBKqRzk6w/exec",
   ENDPOINT_SECRET: "dfsjdfjdsfhdjhasfndsfdkfdk",
   STUDY: "study_v1",
+  FORMS_VERSION: 2,
   ENDPOINT_NO_CORS: false
 };

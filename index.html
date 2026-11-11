@@ -29,7 +29,7 @@ button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--a
   <h1>Slider study <span class="tag" id="formtag"></span></h1>
   <p class="lead">Compare two versions of the same editing slider: which one is smoother and more consistent, has fewer artifacts, and is better overall?</p>
   <p class="lead">4 parts · <span id="ntot">about 30</span> comparisons · about 20 minutes. Answers are saved automatically; take a break between parts if you like.</p>
-  <p class="lead">Leave &ldquo;Same&rdquo; if you see no difference.</p>
+  <p class="lead">Pick A or B whenever you can; use &ldquo;No preference&rdquo; sparingly, only if you really cannot say which is better.</p>
   <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label for="rname"><b>Name</b></label>
     <input id="rname" type="text" autocomplete="off" maxlength="60" placeholder="Your name">
     <button class="pri" id="go" disabled>Loading…</button></p>
@@ -65,6 +65,7 @@ $("go").onclick=async()=>{const name=$("rname").value.trim();if(!name){$("note")
   const st=H.status(FORMS,FORM,name);const p=H.nextPart(st)||st.order[0];open(p)};
 $("rname").addEventListener("input",()=>{$("note").textContent="";paint()});
 $("rname").addEventListener("keydown",ev=>{if(ev.key==="Enter")$("go").click()});
+if(H.updatedNotice){$("note").textContent="The study was updated since your last visit, so it starts again from the beginning.";$("note").className="status warn"}
 fetch("forms.json").then(r=>r.json()).then(f=>{FORMS=f;if(!$("rname").value.trim())$("rname").value=H.name();$("go").disabled=false;$("go").textContent="Start";paint();
   H.flushAll(H.name(),paint)}).catch(()=>{$("go").textContent="Failed to load. Reload the page."});
 setInterval(()=>{if(FORMS&&FORM&&H.status(FORMS,FORM,H.name()).unsent)H.flushAll(H.name(),paint)},30000);

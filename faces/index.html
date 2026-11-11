@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Face Slider Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: one viewing booth. Two sliders side by side on a neutral grey stage, a strength scrubber whose cells show how different A and B are at each strength, a shared 2x lens, and three centred answer rows. */
+:root{
+  --bg:#d9dad8; --panel:#eceeed; --ink:#1d2021; --muted:#5d6264; --line:#b9bcbb;
+  --accent:#2f5d8a; --accent-ink:#ffffff; --good:#2f7a4f; --warn:#9a5b12; --stage:#808280;
+  --heat0:#e3e5e4; --heat1:#c0563a; --mark:#1d2021;
+  --ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#2a2c2c; --panel:#343737; --ink:#e7e9e8; --muted:#a3a8a9; --line:#4a4e4f;
+  --accent:#7fb0de; --accent-ink:#10202e; --good:#7cc79a; --warn:#e2b26a; --heat0:#3c4040; --heat1:#e07a5a; --mark:#e7e9e8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#2a2c2c; --panel:#343737; --ink:#e7e9e8; --muted:#a3a8a9; --line:#4a4e4f;
+  --accent:#7fb0de; --accent-ink:#10202e; --good:#7cc79a; --warn:#e2b26a; --heat0:#3c4040; --heat1:#e07a5a; --mark:#e7e9e8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--ui);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+h1{font-size:18px;font-weight:600;margin:0}
+.top{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between;max-width:1800px;margin:0 auto 10px}
+.meta{font:13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;max-width:1800px;margin:0 auto 12px}
+.bar>i{display:block;height:100%;background:var(--accent);width:0}
+.wrap{max-width:1800px;margin:0 auto}
+.intro{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;max-width:780px}
+.intro p,.intro li{max-width:70ch}.intro ul{padding-left:20px}
+kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--bg)}
+.q{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;margin:4px 0 8px}
+.tag{font:12px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:1px 6px}
+.edit{color:var(--muted);min-width:0}.edit b{color:var(--ink);font-weight:500}
+.orig{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0 auto 10px}
+.olab{font:600 13px var(--mono);letter-spacing:.06em;color:var(--muted)}.olab span{font-weight:400;letter-spacing:0}
+.orig img{display:block;max-width:min(100%,420px);max-height:26vh;width:auto;height:auto;border-radius:3px;background:var(--stage);cursor:zoom-in}
+.orig img.big{max-width:100%;max-height:none;cursor:zoom-out}
+.stage{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.side{min-width:0;display:flex;flex-direction:column;gap:4px}
+.side h2{font:600 13px var(--mono);letter-spacing:.08em;margin:0;color:var(--muted);text-align:center}
+.view{position:relative;background:var(--stage);overflow:hidden;border-radius:3px;max-width:100%;cursor:crosshair}
+.view canvas.main{display:block;width:100%;height:auto;max-height:62vh;object-fit:contain}
+.lens{position:absolute;pointer-events:none;width:260px;height:260px;border:2px solid #fff;box-shadow:0 0 0 1px #000,0 4px 14px rgba(0,0,0,.35);image-rendering:pixelated;display:none}
+.single{display:none}.flick .stage{display:none}.flick .single{display:block}
+.single .view{max-width:min(100%,1000px);margin:0 auto}
+.flabel{font:600 13px var(--mono);color:var(--muted);text-align:center;margin-bottom:4px}
+.scrub{margin-top:10px;display:grid;gap:6px}
+.scrubhead{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.scrubhead b{color:var(--ink);font:600 13px var(--mono)}
+.cells{display:grid;gap:2px}
+.cell{height:30px;border-radius:2px;border:2px solid transparent;cursor:pointer;position:relative;padding:0}
+.cell.cur{border:3px solid var(--ink);outline:3px solid var(--accent);outline-offset:1px;z-index:1;transform:scaleY(1.35)}
+.side h2 .olab{font-weight:400;color:var(--accent);margin-left:6px}
+.marks{display:grid;gap:2px;margin-top:-2px}.marks .mk{text-align:center;font-size:11px;line-height:12px;color:var(--ink)}
+.legend{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend .grad{width:120px;height:10px;border-radius:2px;border:1px solid var(--line);background:linear-gradient(90deg,#fafaf8,#f4a340,#b23a2a,#4a1446)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
+.answers{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:14px auto 0;display:grid;gap:10px;justify-items:center;max-width:760px}
+.arow{display:grid;gap:4px;justify-items:center;width:100%}
+.arow .lab{font-weight:600;text-align:center}.arow .lab small{font:12px var(--mono);color:var(--muted);font-weight:400;margin-left:6px}
+.seg{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+button{font:500 14px var(--ui);border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.on,button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg button{min-width:130px}
+button.small{font-size:13px;padding:5px 10px}
+button[disabled]{opacity:.45;cursor:default}
+.next{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.status{font-size:13px;color:var(--muted);min-height:1.4em;text-align:center}
+.status.warn{color:var(--warn)}.status.ok{color:var(--good)}
+.done{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;max-width:780px}
+textarea{width:100%;height:120px;font:12px var(--mono);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+h1 .tag{margin-left:8px;font-weight:400;vertical-align:2px}
+.tips{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px 14px;margin:0 0 6px;font-size:12.5px;line-height:1.4;color:var(--muted)}
+.tips-h{font:11px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.tips ul{display:flex;flex-wrap:wrap;gap:1px 20px;margin:0;padding:0;list-style:none;min-width:0}
+.tips li::before{content:"\2022";margin-right:6px;opacity:.55}
+.tips kbd{font-size:11px}
+@media (max-width:760px){.stage{grid-template-columns:1fr}.seg button{min-width:0;flex:1}}
+.meta .ok{color:var(--good)}.meta .warn{color:var(--warn)}
+#m-save{cursor:pointer}
+.linkbtn{background:none;border:0;border-radius:0;padding:0;font:13px var(--mono);color:var(--accent);text-decoration:underline;cursor:pointer}
+.linkbtn:hover{border:0}
+.done .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+.loadbox{display:flex;gap:12px;align-items:center;justify-content:center;margin:6px auto 8px;font-size:14px;color:var(--muted)}
+.loadbox .lbar{width:220px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.loadbox .lbar i{display:block;height:100%;width:0;background:var(--accent)}
+#booth.wait{opacity:.35;pointer-events:none}
+.scrub2{margin-top:10px;display:grid;gap:6px;justify-items:center}
+.padwrap{display:grid;grid-template-columns:auto auto;gap:4px;align-items:center}
+.axlab{font-size:12px;color:var(--muted)}.ax1{grid-column:2;grid-row:1;text-align:center}
+.ax0{grid-column:1;grid-row:2;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center}
+.pad{grid-column:2;grid-row:2;display:grid;gap:2px;width:min(340px,80vw)}
+.pcell{aspect-ratio:1;border-radius:2px;border:2px solid transparent;padding:0;font-size:10px;line-height:1;cursor:pointer;min-width:0}
+.pcell.cur{border:3px solid var(--ink);outline:2px solid var(--accent);outline-offset:1px;z-index:1}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>Two-edit face sliders <span class="tag" id="m-part"></span></h1>
+  <div class="meta"><span id="m-progress">loading…</span><span id="m-save" role="button" tabindex="0"></span><button class="linkbtn" id="b-dl" type="button">Download my answers</button></div>
+</div>
+<div class="bar"><i id="bar"></i></div>
+
+<div class="wrap">
+  <section class="intro" id="intro">
+    <p><b>What you are judging.</b> Each trial shows two versions, A and B, of the same two-edit slider: two edits applied together, each at 10 strengths, so every one of the 10 &times; 10 strength pairs is rendered, in two different ways. They start paused at the lowest strengths; move to any strength pair to look closely, or press Play to sweep through the grid.</p>
+    <p>The 10 &times; 10 pad under the images is the strength grid: rows = the first edit, columns = the second edit. White means no visible difference between A and B at that strength pair; orange to dark plum means a growing difference, on the same scale for every trial. Triangles mark this pair's three most different cells. Click a cell to jump there.</p>
+    <p>Answer three questions. Each starts at <b>Same</b>; change it only where you see a difference.</p>
+    <ul>
+      <li><b>Smoothness / Consistency</b>: which slider changes more smoothly and consistently as you move it (along either edit), with no flicker or jumps in parts that should stay the same?</li>
+      <li><b>Fewer artifacts</b>: which shows fewer visual defects: double edges, see-through or doubled objects, washed-out or mixed regions, smears, blur, distorted shapes.</li>
+      <li><b>Better overall</b>: which slider you would rather use.</li>
+    </ul>
+    <ul>
+      <li>Keys: <kbd>←</kbd> <kbd>→</kbd> step the second edit, <kbd>↑</kbd> <kbd>↓</kbd> step the first edit; <kbd>Space</kbd> play or pause; <kbd>F</kbd> flicker A and B in one place; <kbd>O</kbd> flicker both with the original image; hover for a 2× lens.</li>
+      <li>Answers: <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> smoothness / consistency A / same / B; <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> artifacts; <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> overall; <kbd>Enter</kbd> next; <kbd>Backspace</kbd> back.</li>
+      <li id="part-note">This is one of three parts.</li>
+    </ul>
+    <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label for="rname"><b>Name</b></label>
+      <input id="rname" type="text" autocomplete="off" maxlength="60" placeholder="Your name"
+        style="font:15px var(--ui);padding:7px 10px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);min-width:240px"></p>
+    <p id="store-note" class="status" style="text-align:left"></p>
+    <button class="pri" id="start" disabled>Loading trials…</button>
+  </section>
+
+  <section id="trial" hidden>
+    <div class="tips" id="tips"><span class="tips-h">Tips</span>
+      <ul>
+        <li>Move through the strength grid with the arrow keys (<kbd>←</kbd> <kbd>→</kbd> one edit, <kbd>↑</kbd> <kbd>↓</kbd> the other) to look at smoothness and consistency.</li>
+        <li>A/B flicker (<kbd>F</kbd>) might be helpful for revealing small differences.</li>
+        <li>Colour shows how different the two are across the strength grid.</li>
+      </ul>
+    </div>
+    <div class="q"><span class="tag" id="t-bed">Two-edit slider</span><span class="edit" id="t-edit"></span></div>
+    <div class="orig" id="orig" hidden>
+      <div class="olab">Original image <span>(the input before the edit)</span></div>
+      <img id="origimg" alt="Original image before the edit">
+    </div>
+    <div class="loadbox" id="loadbox" hidden><span id="loadtxt">Loading this comparison…</span><span class="lbar"><i id="loadbar"></i></span></div>
+    <div id="booth">
+      <div class="stage">
+        <div class="side"><h2>A<span class="olab" id="olabA"></span></h2><div class="view" id="vA"><canvas class="main" id="cA"></canvas><canvas class="lens" id="lA" width="260" height="260"></canvas></div></div>
+        <div class="side"><h2>B<span class="olab" id="olabB"></span></h2><div class="view" id="vB"><canvas class="main" id="cB"></canvas><canvas class="lens" id="lB" width="260" height="260"></canvas></div></div>
+      </div>
+      <div class="single"><div class="flabel" id="flabel">A</div><div class="view" id="vF"><canvas class="main" id="cF"></canvas></div></div>
+    </div>
+
+    <div class="scrub2">
+      <div class="scrubhead"><span>Strengths <b id="s-val">–</b> <span id="s-idx"></span></span>
+        <span class="legend"><span>no visible difference</span><span class="grad"></span><span>large difference</span><span>· ▲ = this pair's 3 most different</span></span></div>
+      <div class="padwrap"><div class="axlab ax1" id="ax1">second edit →</div><div class="axlab ax0" id="ax0">first edit ↓</div><div class="pad" id="pad"></div></div>
+    </div>
+    <div class="tools">
+      <button class="small" id="b-play" aria-pressed="true">Paused · Play (Space)</button>
+      <button class="small" id="b-flick">Flicker A/B (F)</button>
+      <button class="small" id="b-orig">Flicker with original (O)</button>
+      <button class="small" id="b-back">Back (⌫)</button>
+    </div>
+
+    <div class="answers">
+      <div class="arow"><div class="lab">Smoothness / Consistency<small>Q W E</small></div>
+        <div class="seg" data-q="smooth"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+      <div class="arow"><div class="lab">Fewer artifacts<small>A S D</small></div>
+        <div class="seg" data-q="artifacts"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+      <div class="arow"><div class="lab">Better overall<small>Z X C</small></div>
+        <div class="seg" data-q="overall"><button data-v="A">A</button><button data-v="T">Same</button><button data-v="B">B</button></div></div>
+      <div class="next"><button class="pri" id="b-next">Next (Enter)</button></div>
+      <div class="status" id="status"></div>
+    </div>
+  </section>
+
+  <section class="done" id="done" hidden>
+    <h2 style="margin-top:0;font-size:17px" id="done-h">This part is done</h2>
+    <p id="done-note" class="status" style="text-align:left"></p>
+    <p class="row"><button class="pri" id="b-nextpart" type="button" hidden>Continue</button><button id="b-review" type="button">Back to the last trial</button><button id="b-dl2" type="button">Download my answers</button></p>
+    <div id="export" hidden>
+      <p class="status warn" style="text-align:left">The file could not be downloaded. Copy your answers and send them to the study owner.</p>
+      <textarea id="exp" readonly></textarea>
+      <button class="small" id="b-copy">Copy answers</button>
+    </div>
+  </section>
+</div>
+
+<video id="vsA" muted playsinline preload="auto" style="display:none"></video>
+<video id="vsB" muted playsinline preload="auto" style="display:none"></video>
+
+<script src="../config.js"></script>
+<script src="../common.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const H=window.HS2,CFG=H.CFG,PAGE="faces",STUDY=H.STUDY;
+let trials=[],byId={},order=[],idx=0,answers={},cur=null,tStart=0,raf=null,lensPos=null,FORMS=null,FORM=0,OD=null;
+let loading=false,loadTok=0,want=0,shown=-1,seekBusy=false,seekGen=0,perfT0=0,perfTarget=null,lastKey="";const PERF={step:[],ready:[]};
+let pick={},flickOn=false,flickTimer=null,flickShow=0,usedZoom=false,usedFlick=false,playing=false;
+let si=0,dir=1,stepTimer=null,visited=new Set(),dirty=false,raterName=H.name(),serp=[];
+function setStatus(t,c){const s=$("status");s.textContent=t;s.className="status"+(c?" "+c:"")}
+function progress(){const n=order.filter(t=>answers[t.id]).length;$("m-progress").textContent=n+" / "+order.length+" answered";
+  $("bar").style.width=(order.length?100*n/order.length:0)+"%"}
+function setOrder(){FORM=H.form(FORMS.n_forms,raterName);OD=FORM?H.orderFor(FORMS,FORM,raterName):null;
+  order=OD?OD.trials[PAGE].map(id=>byId[id]).filter(Boolean):[];
+  const k=OD?OD.parts.indexOf(PAGE)+1:0,np=OD?OD.parts.length:0;$("m-part").textContent=FORM?("part "+k+" of "+np+" · form "+FORM):"";
+  $("part-note").textContent=FORM?("This is part "+k+" of "+np+" ("+order.length+" comparisons, about "+Math.round(order.length*0.55)+" minutes). You can take a break between parts."):"Enter your name to get your set of comparisons.";
+  progress()}
+async function boot(){
+  try{const [j,f]=await Promise.all([fetch("trials.json").then(r=>r.json()),fetch("../forms.json").then(r=>r.json())]);
+    trials=j.trials;trials.forEach(t=>{byId[t.id]=t});FORMS=f}
+  catch(e){$("start").textContent="Trials failed to load. Reload the page.";return}
+  answers=H.answers(PAGE);if(!$("rname").value.trim())$("rname").value=raterName;else raterName=$("rname").value.trim();setOrder();
+  $("start").disabled=false;$("start").textContent=order.some(t=>answers[t.id])?"Continue":"Start";
+  const note=$("store-note");
+  if(CFG.ENDPOINT_URL){note.textContent="Answers are sent to the study owner as you go, and kept in this browser.";note.className="status ok"}
+  else{note.textContent="Answers are kept in this browser. Download them when you finish and send the file to the study owner.";note.className="status warn"}
+  paintSync();H.flushAll(raterName,paintSync)}
+function paintSync(){if(!FORMS)return;const st=H.status(FORMS,FORM,raterName),me=st.parts[PAGE]||{unsent:0},el=$("m-save");let t,c;
+  if(!CFG.ENDPOINT_URL){t="answers kept in this browser only";c="warn"}
+  else if(me.unsent){t=me.unsent+" not yet sent";c="warn"}
+  else{t="all answers saved";c="ok"}
+  el.textContent=t;el.className=c;el.title=me.unsent?"Click to send again":"";
+  if(!$("done").hidden)paintDone(st)}
+function paintDone(st){const dn=$("done-note"),nb=$("b-nextpart"),me=st.parts[PAGE];
+  if(st.done){$("done-h").textContent="Done: all "+st.n+" answers saved";
+    dn.textContent="Thank you! Every answer of your form reached the study owner. You can close this page.";dn.className="status ok";nb.hidden=true;return}
+  const nx=H.nextPart(st,PAGE);
+  $("done-h").textContent=me.unsent?"This part is done; "+me.unsent+" answer"+(me.unsent>1?"s":"")+" not yet saved":"This part is done";
+  const parts=st.order.map((p,i)=>"part "+(i+1)+" ("+H.LABEL[p]+"): "+st.parts[p].answered+" / "+st.parts[p].n+(st.parts[p].unsent?", "+st.parts[p].unsent+" not yet saved":"")).join(" · ");
+  dn.textContent=(st.unsent?"Some answers have not reached the study owner yet; keep this page open, they are re-sent automatically (or click the red counter). ":"")+(nx?"You can take a break here. ":"")+parts;
+  dn.className="status "+(st.unsent?"warn":"ok");
+  if(nx){nb.hidden=false;nb.textContent="Continue with part "+(st.order.indexOf(nx)+1)+": "+H.LABEL[nx];nb.onclick=()=>{location.href=H.linkTo(nx,FORM)}}
+  else nb.hidden=true}
+function save(a){answers[a.trial]=a;if(!H.store(PAGE,a))setStatus("This browser refused to store the answer. Keep this page open until all answers are sent.","warn");
+  paintSync();H.flush(PAGE,raterName,paintSync)}
+function exportObj(){const rows=Object.values(answers).map(a=>H.rowOf(PAGE,a));rows.sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+  const Q=H.queue(PAGE);
+  return {study:STUDY,page:PAGE,form:FORM,rater:H.raterString(raterName),name:raterName,rid:H.rid(),rcode:H.rcode(),exported_at:new Date().toISOString(),
+    n:rows.length,not_yet_sent:Object.keys(Q).filter(k=>answers[k]),rows:rows}}
+function download(){const text=JSON.stringify(exportObj(),null,1);
+  const fn=STUDY+"_"+PAGE+"_"+(raterName||"rater").replace(/[^A-Za-z0-9]+/g,"_").slice(0,40)+"_"+new Date().toISOString().slice(0,10)+".json";
+  try{const url=URL.createObjectURL(new Blob([text],{type:"application/json"})),a=document.createElement("a");a.href=url;a.download=fn;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>{try{URL.revokeObjectURL(url)}catch(e){}},2000);
+    if(!$("trial").hidden)setStatus("File downloaded: "+fn,"ok")}
+  catch(e){$("export").hidden=false;$("exp").value=text}}
+setInterval(()=>{if(FORMS&&H.status(FORMS,FORM,raterName).unsent)H.flushAll(raterName,paintSync)},30000);
+function start(){const nm=$("rname").value.trim();
+  if(!nm){$("store-note").textContent="Please enter a name to start.";$("store-note").className="status warn";$("rname").focus();return}
+  raterName=nm;H.setName(nm);setOrder();
+  if(!order.length){$("store-note").textContent="No comparisons found for this form.";$("store-note").className="status warn";return}
+  $("intro").hidden=true;const i=order.findIndex(t=>!answers[t.id]);idx=i<0?order.length:i;show();H.flushAll(raterName,paintSync)}
+
+// colour: white (no visible difference) -> orange -> dark plum. Fixed per page (all forms):
+// v = clip((d - floor) / (p95 - floor), 0, 1) ** 1.5, floor = the page's 10th percentile (encoding noise, tiny differences)
+const STOPS=[[250,250,248],[244,163,64],[178,58,42],[74,20,70]];
+function heatColor(v){v=Math.max(0,Math.min(1,v));const x=v*(STOPS.length-1),i=Math.min(STOPS.length-2,Math.floor(x)),f=x-i;
+  return "rgb("+STOPS[i].map((c,j)=>Math.round(c+(STOPS[i+1][j]-c)*f)).join(",")+")"}
+let SC=null;
+function scale(){if(SC)return SC;const all=[];trials.forEach(t=>all.push(...(t.grid.diff||[])));all.sort((a,b)=>a-b);
+  const q=p=>all.length?all[Math.floor(p*(all.length-1))]:0;SC={lo:q(0.10),hi:Math.max(q(0.95),q(0.10)+1e-9)};return SC}
+function level(d,sc){return Math.pow(Math.max(0,Math.min(1,(d-sc.lo)/(sc.hi-sc.lo))),1.5)}
+// 10 x 10 pad: cell (i, j) = strength i of the first edit (rows), j of the second (columns); frame index si = i * n1 + j
+function buildCells(t){const g=t.grid,box=$("pad"),d=g.diff||[],sc=scale();box.style.gridTemplateColumns="repeat("+g.n1+",1fr)";box.textContent="";
+  for(let k=0;k<g.n0*g.n1;k++){const i=Math.floor(k/g.n1),j=k%g.n1,c=document.createElement("button");c.className="pcell";c.type="button";
+    const lv=d.length?level(d[k],sc):0;c.style.background=heatColor(lv);c.textContent=(g.top||[]).includes(k)?"▲":"";
+    c.style.color=lv>0.55?"#fff":"#1d2021";
+    c.title="first edit "+g.s0[i].toFixed(2)+", second edit "+g.s1[j].toFixed(2)+(d.length?" · difference "+Math.round(100*lv)+" on a 0-100 scale":"");
+    c.setAttribute("aria-label",c.title);c.onclick=()=>{if(loading)return;setPlaying(false);goTo(k)};box.appendChild(c)}
+  $("ax0").textContent=(t.axes?t.axes[0]:"first edit")+" ↓";$("ax1").textContent=(t.axes?t.axes[1]:"second edit")+" →";
+  serp=[];for(let i=0;i<g.n0;i++)for(let jj=0;jj<g.n1;jj++)serp.push(i*g.n1+(i%2?g.n1-1-jj:jj))}
+function markCell(){[...$("pad").children].forEach((c,k)=>c.classList.toggle("cur",k===si));const g=cur.grid,i=Math.floor(si/g.n1),j=si%g.n1;
+  $("s-val").textContent=g.s0[i].toFixed(2)+" / "+g.s1[j].toFixed(2);$("s-idx").textContent="(row "+(i+1)+", column "+(j+1)+" of "+g.n0+" × "+g.n1+")"}
+
+async function show(){
+  stopFlick();stopOrig();cancelAnimationFrame(raf);clearInterval(stepTimer);
+  if(idx>=order.length){$("trial").hidden=true;$("done").hidden=false;$("vsA").pause();$("vsB").pause();
+    progress();paintSync();H.flushAll(raterName,paintSync);return}
+  $("done").hidden=true;$("trial").hidden=false;
+  cur=order[idx];usedZoom=false;usedFlick=false;usedOrig=false;dirty=false;lensPos=null;visited=new Set();
+  $("lA").style.display="none";$("lB").style.display="none";
+  const e=$("t-edit");e.textContent="";e.appendChild(document.createTextNode("Edit: "));const b=document.createElement("b");b.textContent=cur.edit||"";e.appendChild(b);
+  const prev=answers[cur.id];pick=prev?{smooth:prev.smooth,artifacts:prev.artifacts,overall:prev.overall}:{smooth:"T",artifacts:"T",overall:"T"};
+  paintPicks();setStatus(prev?"Answered before; change any answer and press Next.":"");
+  const oi=$("origimg");oi.classList.remove("big");$("orig").hidden=!(cur.source&&cur.source.file);
+  const g=G(cur);["cA","cB","cF"].forEach(id=>{const c=$(id);c.width=g.w;c.height=g.h;c.getContext("2d").clearRect(0,0,g.w,g.h)});
+  buildCells(cur);si=0;dir=1;want=0;shown=-1;seekBusy=false;seekGen++;lastKey="";$("b-orig").hidden=!cur.source;setPlaying(false);progress();
+  // loading gate: both files (and the original image) are downloaded whole before the trial becomes interactive
+  const tok=++loadTok,t0=performance.now();loading=true;$("loadbox").hidden=false;$("booth").classList.add("wait");setLoad(0,1);
+  const urls=[g.fileA,g.fileB].concat(cur.source&&cur.source.file?[cur.source.file]:[]);let m;
+  for(;;){try{m=await H.preload(urls,setLoad);break}catch(err){if(tok!==loadTok)return;$("loadtxt").textContent="Network problem; retrying…";await new Promise(r=>setTimeout(r,2000))}}
+  if(tok!==loadTok)return;
+  if(cur.source&&cur.source.file)oi.src=m[cur.source.file];else oi.removeAttribute("src");
+  await Promise.all(["vsA","vsB"].map((id,i)=>new Promise(res=>{const v=$(id);v.pause();v.onloadeddata=()=>res();v.src=m[i?g.fileB:g.fileA];v.load()})));
+  if(tok!==loadTok)return;
+  await new Promise(res=>{seekTo(0,res)});
+  if(tok!==loadTok)return;
+  loading=false;$("loadbox").hidden=true;$("booth").classList.remove("wait");visited.add(0);markCell();
+  PERF.ready.push({id:cur.id,ms:Math.round(performance.now()-t0)});tStart=performance.now();loop();
+  const nx=order[idx+1];if(nx){const gn=G(nx);H.prefetch([gn.fileA,gn.fileB].concat(nx.source&&nx.source.file?[nx.source.file]:[]))}
+  else H.warmNextPart(FORMS,FORM,raterName,PAGE);
+}
+function setLoad(a,b){const f=b?Math.min(1,a/b):0;$("loadbar").style.width=Math.round(100*f)+"%";
+  $("loadtxt").textContent="Loading this comparison… "+(b>1?Math.round(a/1e6*10)/10+" of "+Math.round(b/1e6*10)/10+" MB":"")}
+function paintPicks(){document.querySelectorAll(".seg").forEach(s=>{const q=s.dataset.q;
+  s.querySelectorAll("button").forEach(bt=>bt.classList.toggle("on",pick[q]===bt.dataset.v))})}
+// both sides seek to the frame of strength si (frame k sits at t = k / fps; seek to its middle)
+// seek both sides to frame si; while a seek is in flight only the LATEST target is kept (holding a key never queues stale seeks)
+function seekTo(k,cb){want=k;pump(cb)}
+function pump(cb){if(!cur)return;if(seekBusy){if(cb)cb();return}const g=G(cur),t=(want+0.5)/(g.fps||4),va=$("vsA"),vb=$("vsB"),target=want;
+  if(Math.abs(va.currentTime-t)<1e-4&&Math.abs(vb.currentTime-t)<1e-4&&!va.seeking&&!vb.seeking){shown=target;if(cb)cb();return}
+  seekBusy=true;const gen=++seekGen;let n=0,fin=false;
+  const done=()=>{if(gen!==seekGen||fin)return;if(++n<2)return;fin=true;clearTimeout(wd);seekBusy=false;shown=target;if(want!==target)pump();if(cb)cb()};
+  // watchdog: a seek that never reports (e.g. the source changed under it) is abandoned after 3 s and retried
+  const wd=setTimeout(()=>{if(gen!==seekGen||fin)return;fin=true;seekBusy=false;seekGen++;pump(cb)},3000);
+  va.addEventListener("seeked",done,{once:true});vb.addEventListener("seeked",done,{once:true});
+  try{va.currentTime=t;vb.currentTime=t}catch(e){fin=true;clearTimeout(wd);seekBusy=false;if(cb)cb()}}
+function seek(){seekTo(si);visited.add(si);markCell()}
+function goTo(k){const g=cur.grid;si=Math.max(0,Math.min(g.n0*g.n1-1,k));seek()}
+function move(di,dj){const g=cur.grid,i=Math.floor(si/g.n1),j=si%g.n1;goTo(Math.max(0,Math.min(g.n0-1,i+di))*g.n1+Math.max(0,Math.min(g.n1-1,j+dj)))}
+function setPlaying(p){playing=p;clearInterval(stepTimer);const pb=$("b-play");pb.textContent=playing?"Playing · Pause (Space)":"Paused · Play (Space)";pb.setAttribute("aria-pressed",playing?"false":"true");
+  // play = serpentine sweep through the grid (row by row, alternating direction), forth and back
+  if(playing){let p=serp.indexOf(si);stepTimer=setInterval(()=>{if(!cur||serp.length<2)return;
+    if(p+dir<0||p+dir>serp.length-1)dir=-dir;p+=dir;si=serp[p];seek()},250)}}
+function ready(v){return v.readyState>=2&&!v.seeking}
+function G(t){return t.sweep||t.grid}
+function loop(){const t=cur;const draw=()=>{if(cur!==t)return;
+  const va=$("vsA"),vb=$("vsB"),g=t.grid;
+  const sk=[shown,flickOn,flickShow,origOn,origShow,lensPos?Math.round(lensPos.fx*400)+","+Math.round(lensPos.fy*400):""].join("|");
+  if(!loading&&!seekBusy&&ready(va)&&ready(vb)&&sk!==lastKey){lastKey=sk;
+    const oimg=$("origimg"),showO=origOn&&origShow&&oimg.complete&&oimg.naturalWidth;
+    [["cA",va],["cB",vb]].forEach(([id,v])=>{const c=$(id);if(c.width!==g.w){c.width=g.w;c.height=g.h}
+      if(showO)c.getContext("2d").drawImage(oimg,0,0,oimg.naturalWidth,oimg.naturalHeight,0,0,g.w,g.h);
+      else c.getContext("2d").drawImage(v,0,0,g.w,g.h,0,0,g.w,g.h)});
+    $("olabA").textContent=$("olabB").textContent=showO?"original":"";
+    if(flickOn){const c=$("cF");if(c.width!==g.w){c.width=g.w;c.height=g.h}c.getContext("2d").drawImage(flickShow?vb:va,0,0,g.w,g.h,0,0,g.w,g.h);$("flabel").textContent=flickShow?"B":"A"}
+    drawLens();
+    if(perfTarget!==null&&shown===perfTarget){PERF.step.push(Math.round(performance.now()-perfT0));perfTarget=null}}
+  raf=requestAnimationFrame(draw)};draw()}
+// lens
+function onMove(ev){const r=ev.currentTarget.getBoundingClientRect();lensPos={fx:(ev.clientX-r.left)/r.width,fy:(ev.clientY-r.top)/r.height};usedZoom=true}
+function onLeave(){lensPos=null;$("lA").style.display="none";$("lB").style.display="none"}
+function drawLens(){if(!lensPos||!cur)return;const g=cur.grid;
+  [["vA","cA","lA"],["vB","cB","lB"]].forEach(([vid,cid,lid])=>{const v=$(vid),c=$(cid),l=$(lid),r=v.getBoundingClientRect();
+    const px=lensPos.fx*r.width,py=lensPos.fy*r.height;l.style.display="block";
+    l.style.left=Math.min(Math.max(px-130,0),Math.max(r.width-260,0))+"px";l.style.top=Math.min(Math.max(py-130,0),Math.max(r.height-260,0))+"px";
+    const x=l.getContext("2d");x.imageSmoothingEnabled=false;x.fillStyle="#808280";x.fillRect(0,0,260,260);
+    x.drawImage(c,lensPos.fx*g.w-65,lensPos.fy*g.h-65,130,130,0,0,260,260)})}
+["vA","vB"].forEach(id=>{$(id).addEventListener("mousemove",onMove);$(id).addEventListener("mouseleave",onLeave)});
+// flicker each side with the original (unedited) image
+let origOn=false,origShow=false,origTimer=null,usedOrig=false;
+function toggleOrig(){if(!cur||!cur.source)return;origOn?stopOrig():startOrig()}
+function startOrig(){stopFlick();setPlaying(false);origOn=true;usedOrig=true;origShow=true;
+  origTimer=setInterval(()=>{origShow=!origShow},matchMedia("(prefers-reduced-motion: reduce)").matches?1200:600);$("b-orig").textContent="Stop original flicker (O)";$("b-orig").classList.add("on")}
+function stopOrig(){origOn=false;origShow=false;clearInterval(origTimer);$("b-orig").textContent="Flicker with original (O)";$("b-orig").classList.remove("on")}
+function toggleFlick(){flickOn?stopFlick():startFlick()}
+function startFlick(){setPlaying(false);flickOn=true;usedFlick=true;$("booth").classList.add("flick");flickShow=0;
+  flickTimer=setInterval(()=>{flickShow^=1},matchMedia("(prefers-reduced-motion: reduce)").matches?1200:600);$("b-flick").textContent="Stop flicker (F)"}
+function stopFlick(){flickOn=false;clearInterval(flickTimer);$("booth").classList.remove("flick");$("b-flick").textContent="Flicker A/B (F)"}
+
+function setPick(q,v){if(pick[q]!==v)dirty=true;pick[q]=v;paintPicks()}
+function answerOf(via){return {trial:cur.id,part:PAGE,part_order:OD?OD.parts.join(","):"",part_idx:OD?OD.parts.indexOf(PAGE)+1:0,smooth:pick.smooth,artifacts:pick.artifacts,overall:pick.overall,rt_ms:Math.round(performance.now()-tStart),
+    zoom:usedZoom,flicker:usedFlick,orig:usedOrig,visited:[...visited].sort((x,y)=>x-y),name:raterName,at:new Date().toISOString(),v:1,via:via,form:FORM,pos:idx+1}}
+function next(){if(!cur||loading)return;save(answerOf("next"));idx++;show()}
+// Back keeps what was changed on this visit; an untouched, never-answered trial is not recorded as answered
+function back(){if(idx<=0)return;if(cur&&!$("trial").hidden&&dirty)save(answerOf("back"));idx--;show()}
+document.querySelectorAll(".seg").forEach(s=>s.querySelectorAll("button").forEach(bt=>bt.onclick=()=>setPick(s.dataset.q,bt.dataset.v)));
+$("origimg").onclick=()=>$("origimg").classList.toggle("big");
+$("b-next").onclick=next;$("b-back").onclick=back;$("b-flick").onclick=()=>{stopOrig();toggleFlick()};$("b-orig").onclick=toggleOrig;
+$("b-play").onclick=()=>setPlaying(!playing);$("start").onclick=start;
+$("b-dl").onclick=download;$("b-dl2").onclick=download;$("b-review").onclick=back;$("m-save").onclick=()=>H.flushAll(raterName,paintSync);
+$("b-copy").onclick=()=>{const t=$("exp");try{navigator.clipboard.writeText(t.value).catch(()=>t.select())}catch(e){t.select()}};
+const KEYS={q:["smooth","A"],w:["smooth","T"],e:["smooth","B"],a:["artifacts","A"],s:["artifacts","T"],d:["artifacts","B"],z:["overall","A"],x:["overall","T"],c:["overall","B"]};
+document.addEventListener("keydown",ev=>{
+  if($("trial").hidden){if(ev.key==="Enter"&&!$("intro").hidden&&!$("start").disabled)start();return}
+  if(ev.target&&ev.target.tagName==="INPUT")return;
+  if(loading){if(ev.key===" "||ev.key.startsWith("Arrow"))ev.preventDefault();return}
+  const k=ev.key.toLowerCase();if(ev.key.startsWith("Arrow")){perfT0=performance.now()}
+  if(KEYS[k]){ev.preventDefault();setPick(KEYS[k][0],KEYS[k][1])}
+  else if(ev.key==="Enter"){ev.preventDefault();next()}
+  else if(ev.key==="Backspace"){ev.preventDefault();back()}
+  else if(ev.key===" "){ev.preventDefault();setPlaying(!playing)}
+  else if(ev.key==="ArrowLeft"){ev.preventDefault();setPlaying(false);move(0,-1);perfTarget=si}
+  else if(ev.key==="ArrowRight"){ev.preventDefault();setPlaying(false);move(0,1);perfTarget=si}
+  else if(ev.key==="ArrowUp"){ev.preventDefault();setPlaying(false);move(-1,0);perfTarget=si}
+  else if(ev.key==="ArrowDown"){ev.preventDefault();setPlaying(false);move(1,0);perfTarget=si}
+  else if(k==="f"){stopOrig();toggleFlick()}
+  else if(k==="o"){toggleOrig()}
+});
+window.STUDY_TEST={perf:PERF,state:()=>({loading:loading,shown:shown,study:STUDY,page:PAGE,form:FORM,n:order.length,idx:idx,trial:cur&&cur.id,si:si,answers:answers,queue:H.queue(PAGE),
+  rid:H.rid(),name:raterName,order:order.map(t=>t.id),playing:playing,status:FORMS?H.status(FORMS,FORM):null,
+  times:[$("vsA").currentTime,$("vsB").currentTime],done:!$("done").hidden,doneText:$("done-h").textContent+" | "+$("done-note").textContent}),exportObj:exportObj};
+boot();
+})();
+</script>
+</body>
+</html>

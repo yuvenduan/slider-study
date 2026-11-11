@@ -24,13 +24,35 @@ function formFor(name,n){return (fnv(normName(name))%n)+1}
 const H={STUDY:STUDY,CFG:CFG,QS:QS,PAGES:PAGES,LABEL:LABEL,rid:()=>rid,rcode:()=>rcode,formFor:formFor,lsGet:lsGet,lsSet:lsSet};
 H.name=()=>lsGet(PFX+"name","")||"";
 H.setName=n=>lsSet(PFX+"name",String(n).trim().slice(0,60));
-// form: ?form=k (kept for later visits) > the form stored with this name > from the name
-H.form=function(nForms,name){const q=parseInt(QS.get("form")||"",10);
-  if(q>=1&&q<=nForms){lsSet(PFX+"form",{form:q,name:normName(name),link:true});return q}
-  const st=lsGet(PFX+"form",null);
-  if(st&&st.form>=1&&st.form<=nForms&&(st.link||st.name===normName(name)))return st.form;
-  if(!normName(name))return 0;
-  const f=formFor(name,nForms);lsSet(PFX+"form",{form:f,name:normName(name),link:false});return f};
+// ---- form assignment (v2, 2026-11-11): ONE link for everyone ----
+// Order: ?form=k in the URL (mode "link") > the assignment stored in this browser for this name > (TEST_ names: from the name hash,
+// mode "test", no server call) > the server's {action:"assign"} (mode "server": forms handed out in turn, a returning name gets its
+// form again) > FALLBACK when the call fails or the server is the old version (no form in the reply): from the name hash, mode
+// "fallback". Never blocks the rater. A browser that started under the old pages keeps its old form (mode "v1").
+const ASSIGN=PFX+"assign";
+function isTest(name){return /^test_/i.test(String(name||"").trim())}
+H.isTestName=isTest;
+// synchronous: the form already known for this name (0 = not assigned yet)
+H.form=function(nForms,name){const q=parseInt(QS.get("form")||"",10),nn=normName(name);
+  if(q>=1&&q<=nForms){lsSet(ASSIGN,{form:q,name:nn,mode:"link"});return q}
+  const a=lsGet(ASSIGN,null);
+  if(a&&a.form>=1&&a.form<=nForms&&(a.mode==="link"||a.name===nn))return a.form;
+  const st=lsGet(PFX+"form",null);   // stored by the first version of the pages
+  if(st&&st.form>=1&&st.form<=nForms&&(st.link||st.name===nn)){lsSet(ASSIGN,{form:st.form,name:nn,mode:st.link?"link":"v1"});return st.form}
+  if(nn&&isTest(name)){const f=formFor(name,nForms);lsSet(ASSIGN,{form:f,name:nn,mode:"test"});return f}
+  return 0};
+H.assignMode=function(name){const a=lsGet(ASSIGN,null);return a&&(a.mode==="link"||a.name===normName(name))?a.mode:""};
+// asynchronous: ask the server once (8 s timeout), else fall back; resolves to the form number
+H.assign=async function(nForms,name){const f0=H.form(nForms,name);if(f0)return f0;const nn=normName(name);if(!nn)return 0;
+  let form=0,mode="fallback",returning=false;
+  if(CFG.ENDPOINT_URL){const ctl=typeof AbortController!=="undefined"?new AbortController():null,tm=ctl?setTimeout(()=>ctl.abort(),8000):0;
+    try{const r=await fetch(CFG.ENDPOINT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},redirect:"follow",
+          body:JSON.stringify({secret:CFG.ENDPOINT_SECRET||"",action:"assign",study:STUDY,rater:nn,forms:nForms}),signal:ctl?ctl.signal:undefined});
+      const j=JSON.parse(await r.text());const k=parseInt(j&&j.form,10);
+      if(j&&j.ok===true&&k>=1&&k<=nForms){form=k;mode="server";returning=!!j.returning}}
+    catch(e){}finally{if(tm)clearTimeout(tm)}}
+  if(!form)form=formFor(name,nForms);
+  lsSet(ASSIGN,{form:form,name:nn,mode:mode,returning:returning,at:new Date().toISOString()});return form};
 H.answers=p=>lsGet(PFX+p+"_answers",{})||{};
 H.queue=p=>lsGet(PFX+p+"_queue",{})||{};
 // store one answer and queue it; returns false if the browser refused to store it
@@ -48,7 +70,10 @@ H.post=async function(rows,name){
     const j=JSON.parse(await r.text());return !!(j&&j.ok===true)}
   catch(e){return false}
   finally{if(tm)clearTimeout(tm)}};
-const busy={},again={};
+const busy={},again={},failN={};
+// a part counts as FAILING after two consecutive refused / unreachable sends (the first try and one retry) while answers wait
+H.failed=p=>!CFG.ENDPOINT_URL||(failN[p]||0)>=2;
+H.anyFailed=()=>PAGES.some(p=>Object.keys(H.queue(p)).length&&H.failed(p));
 // send the queued answers of one part, 50 per request; an answer changed while in flight stays queued
 H.flush=async function(p,name,onDone){
   if(!CFG.ENDPOINT_URL)return;
@@ -57,7 +82,8 @@ H.flush=async function(p,name,onDone){
   try{const A=H.answers(p),Q=H.queue(p);Object.keys(Q).forEach(k=>{if(!A[k])delete Q[k]});lsSet(PFX+p+"_queue",Q);
     const ids=Object.keys(Q);
     for(let i=0;i<ids.length;i+=50){const part=ids.slice(i,i+50),sent=part.map(k=>A[k]);
-      if(!await H.post(sent.map(a=>H.rowOf(p,a)),name||H.name()))break;
+      if(!await H.post(sent.map(a=>H.rowOf(p,a)),name||H.name())){failN[p]=(failN[p]||0)+1;break}
+      failN[p]=0;
       const A2=H.answers(p),Q2=H.queue(p);part.forEach((k,j)=>{if(A2[k]&&A2[k].at===sent[j].at)delete Q2[k]});lsSet(PFX+p+"_queue",Q2);
       if(onDone)onDone()}}
   finally{busy[p]=false;if(onDone)onDone();if(again[p]){again[p]=false;setTimeout(()=>H.flush(p,name,onDone),0)}}};
@@ -111,7 +137,8 @@ H.warmNextPart=async function(forms,form,name,curPart,root){if(warmed)return;war
   const g=t.sweep||t.grid||t.clips;[g.fileA,g.fileB].concat(t.source&&t.source.file?[t.source.file]:[]).forEach(f=>{fetch(pre+nx+"/"+f).then(r=>r.blob()).catch(()=>{})})}
   catch(e){}};
 // link to a part (p) or to the start page (p = ""), from the start page (root = true) or from a part
-H.linkTo=function(p,form,root){const q=new URLSearchParams();if(form)q.set("form",form);
+// the form travels in the URL only when it came from a link (?form=k); otherwise the next page reads the stored assignment
+H.linkTo=function(p,form,root){const q=new URLSearchParams();if(form&&(parseInt(QS.get("form")||"",10)===form||H.assignMode(H.name())==="link"))q.set("form",form);
   if(QSTUDY&&/^test/.test(QSTUDY))q.set("study",QSTUDY);if(rcode)q.set("r",rcode);const qs=q.toString();
   return (root?(p?p+"/":"./"):(p?"../"+p+"/":"../"))+(qs?"?"+qs:"")};
 window.addEventListener("online",()=>H.flushAll());

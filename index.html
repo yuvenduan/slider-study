@@ -10,30 +10,26 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#2a2c2c;--panel:#343737;--ink:#e7e9e8;--muted:#a3a8a9;--line:#4a4e4f;--accent:#7fb0de;--accent-ink:#10202e;--good:#7cc79a;--warn:#e2b26a;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#2a2c2c;--panel:#343737;--ink:#e7e9e8;--muted:#a3a8a9;--line:#4a4e4f;--accent:#7fb0de;--accent-ink:#10202e;--good:#7cc79a;--warn:#e2b26a;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px 16px}
-main{max-width:680px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
-h1{font-size:18px;margin:0 0 8px}p{margin:0 0 12px}.muted{color:var(--muted)}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px 16px}
+main{max-width:760px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+h1{font-size:24px;margin:0 0 12px}.lead{font-size:19px}p{margin:0 0 12px}.muted{color:var(--muted)}
 ol{margin:0 0 14px;padding-left:22px}li{margin:4px 0}
-input[type=text]{font:15px system-ui,sans-serif;padding:7px 10px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);min-width:240px;max-width:100%}
-button{font:500 14px system-ui,sans-serif;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 14px;cursor:pointer}
+input[type=text]{font:18px system-ui,sans-serif;padding:7px 10px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);min-width:240px;max-width:100%}
+button{font:500 17px system-ui,sans-serif;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 14px;cursor:pointer}
 button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .parts{display:grid;gap:8px;margin:12px 0}
 .part{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-radius:5px;padding:8px 10px;background:var(--bg)}
-.part b{font-weight:600}.st{font:13px ui-monospace,Menlo,monospace;color:var(--muted)}
-.status{font-size:14px;min-height:1.4em}.ok{color:var(--good)}.warn{color:var(--warn)}
-.tag{font:12px ui-monospace,Menlo,monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:1px 6px;margin-left:8px;font-weight:400}
+.part b{font-weight:600}.st{font:15px ui-monospace,Menlo,monospace;color:var(--muted)}
+.status{font-size:16px;min-height:1.4em}.ok{color:var(--good)}.warn{color:var(--warn)}
+.tag:empty{display:none}.tag{font:12px ui-monospace,Menlo,monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:1px 6px;margin-left:8px;font-weight:400}
 </style>
 </head>
 <body>
 <main>
   <h1>Slider study <span class="tag" id="formtag"></span></h1>
-  <ol>
-    <li>You compare pairs of editing sliders, A and B: the same edit shown at every strength, made in two different ways.</li>
-    <li>Step through the strengths with <b>&larr; &rarr;</b> (two-edit faces: also <b>&uarr; &darr;</b>; videos: pause first); A/B flicker (F) and the 2&times; lens reveal small differences; the colour strip shows where A and B differ most.</li>
-    <li>Answer three questions: <b>Smoothness / Consistency</b> (which slider changes more smoothly and consistently as you move it, with no flicker or jumps in parts that should stay the same?), <b>Fewer artifacts</b>, <b>Better overall</b>. Leave <b>Same</b> where you see no difference.</li>
-    <li>Four parts, <span id="ntot">about 34</span> comparisons, about 20 minutes; take a break between parts if you like. Answers are saved as you go; you can come back later in the same browser.</li>
-    <li>Please use a laptop or desktop with a large screen, and finish when the page says <b>Done: all answers saved</b>.</li>
-  </ol>
+  <p class="lead">Compare two versions of the same editing slider: which one is smoother and more consistent, has fewer artifacts, and is better overall?</p>
+  <p class="lead">4 parts · <span id="ntot">about 30</span> comparisons · about 20 minutes. Answers are saved automatically; take a break between parts if you like.</p>
+  <p class="lead">Leave &ldquo;Same&rdquo; if you see no difference.</p>
   <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label for="rname"><b>Name</b></label>
     <input id="rname" type="text" autocomplete="off" maxlength="60" placeholder="Your name">
     <button class="pri" id="go" disabled>Loading…</button></p>
@@ -49,7 +45,7 @@ const $=id=>document.getElementById(id),H=window.HS2;let FORMS=null,FORM=0;
 function paint(){if(!FORMS)return;const name=$("rname").value.trim();FORM=H.form(FORMS.n_forms,name);
   $("formtag").textContent=FORM?"form "+FORM:"";const box=$("parts");box.textContent="";
   if(!FORM){box.hidden=true;$("final").textContent="";return}
-  const st=H.status(FORMS,FORM);box.hidden=false;$("ntot").textContent=String(st.n);
+  const st=H.status(FORMS,FORM,name);box.hidden=false;$("ntot").textContent=String(st.n);
   st.order.forEach((p,i)=>{const s=st.parts[p],d=document.createElement("div");d.className="part";
     const l=document.createElement("span");l.innerHTML="<b>Part "+(i+1)+"</b> &middot; "+H.LABEL[p];
     const t=document.createElement("span");t.className="st";t.textContent=s.answered+" / "+s.n+" answered"+(s.unsent?" · "+s.unsent+" not yet saved":"");
@@ -63,14 +59,16 @@ function paint(){if(!FORMS)return;const name=$("rname").value.trim();FORM=H.form
   if(H.warmNextPart&&name)H.warmNextPart(FORMS,FORM,name,null,true)}   // download the first comparison while the rater reads
 function open(p){const name=$("rname").value.trim();if(!name){$("note").textContent="Please enter your name first.";$("note").className="status warn";$("rname").focus();return}
   H.setName(name);paint();location.href=H.linkTo(p,FORM,true)}
-$("go").onclick=()=>{const name=$("rname").value.trim();if(!name){$("note").textContent="Please enter your name first.";$("note").className="status warn";$("rname").focus();return}
-  H.setName(name);paint();const st=H.status(FORMS,FORM);const p=H.nextPart(st)||st.order[0];open(p)};
+$("go").onclick=async()=>{const name=$("rname").value.trim();if(!name){$("note").textContent="Please enter your name first.";$("note").className="status warn";$("rname").focus();return}
+  H.setName(name);const g=$("go");g.disabled=true;g.textContent="Starting…";
+  FORM=await H.assign(FORMS.n_forms,name);g.disabled=false;paint();if(!FORM)return;
+  const st=H.status(FORMS,FORM,name);const p=H.nextPart(st)||st.order[0];open(p)};
 $("rname").addEventListener("input",()=>{$("note").textContent="";paint()});
 $("rname").addEventListener("keydown",ev=>{if(ev.key==="Enter")$("go").click()});
-fetch("forms.json").then(r=>r.json()).then(f=>{FORMS=f;if(!$("rname").value.trim())$("rname").value=H.name();$("go").disabled=false;paint();
+fetch("forms.json").then(r=>r.json()).then(f=>{FORMS=f;if(!$("rname").value.trim())$("rname").value=H.name();$("go").disabled=false;$("go").textContent="Start";paint();
   H.flushAll(H.name(),paint)}).catch(()=>{$("go").textContent="Failed to load. Reload the page."});
-setInterval(()=>{if(FORMS&&FORM&&H.status(FORMS,FORM).unsent)H.flushAll(H.name(),paint)},30000);
-window.STUDY_TEST={state:()=>({form:FORM,status:FORMS&&FORM?H.status(FORMS,FORM):null,final:$("final").textContent})};
+setInterval(()=>{if(FORMS&&FORM&&H.status(FORMS,FORM,H.name()).unsent)H.flushAll(H.name(),paint)},30000);
+window.STUDY_TEST={state:()=>({form:FORM,mode:H.assignMode($("rname").value),status:FORMS&&FORM?H.status(FORMS,FORM,$("rname").value.trim()):null,final:$("final").textContent})};
 })();
 </script>
 </body>

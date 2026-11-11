@@ -261,7 +261,7 @@ function progress(){const n=order.filter(t=>answers[t.id]).length;$("m-progress"
 function setOrder(){FORM=H.form(FORMS.n_forms,raterName);OD=FORM?H.orderFor(FORMS,FORM,raterName):null;
   order=OD?OD.trials[PAGE].map(id=>byId[id]).filter(Boolean):[];
   const k=OD?OD.parts.indexOf(PAGE)+1:0,np=OD?OD.parts.length:0;$("m-part").textContent=FORM?("part "+k+" of "+np+" · form "+FORM):"";
-  $("part-note").textContent=FORM?("Part "+k+" of "+np+": "+H.LABEL[PAGE]+" · "+order.length+" comparisons, about "+Math.round(order.length*0.55)+" min"):"Enter your name to start";
+  $("part-note").textContent=FORM?("Part "+k+" of "+np+": "+H.LABEL[PAGE]+" · "+order.length+" comparisons"):"Enter your name to start";
   progress()}
 async function boot(){
   try{const [j,f]=await Promise.all([fetch("trials.json").then(r=>r.json()),fetch("../forms.json").then(r=>r.json())]);
@@ -380,7 +380,7 @@ async function show(){
   $("done").hidden=true;$("trial").hidden=false;
   cur=order[idx];usedZoom=false;usedFlick=false;usedPause=false;dirty=false;paused=false;holdT=0;paintPause();lensPos=null;visited=new Set();dir=1;si=0;shownK=-1;seekBusy=false;seekGen++;
   $("lA").style.display="none";$("lB").style.display="none";
-  const e=$("t-edit");e.textContent="";e.appendChild(document.createTextNode("Edit: "));const b=document.createElement("b");b.textContent=cur.edit||"";e.appendChild(b);
+  const e=$("t-edit");e.textContent="";const b=document.createElement("b");b.textContent=cur.edit||"";e.appendChild(b);
   const prev=answers[cur.id];pick=prev?{smooth:prev.smooth,artifacts:prev.artifacts,overall:prev.overall}:{};
   paintPicks();setStatus(prev?"Answered before; change any answer and press Next.":"");
   const g=cur.clips;["cA","cB","cF"].forEach(id=>{const c=$(id);c.width=g.w;c.height=g.h;c.getContext("2d").clearRect(0,0,g.w,g.h)});fitStage();

@@ -55,7 +55,12 @@ H.assign=async function(nForms,name){const f0=H.form(nForms,name);if(f0)return f
     try{const r=await fetch(CFG.ENDPOINT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},redirect:"follow",
           body:JSON.stringify({secret:CFG.ENDPOINT_SECRET||"",action:"assign",study:STUDY,rater:nn,forms:nForms}),signal:ctl?ctl.signal:undefined});
       const j=JSON.parse(await r.text());const k=parseInt(j&&j.form,10);
-      if(j&&j.ok===true&&k>=1&&k<=nForms){form=k;mode="server";returning=!!j.returning}}
+      if(j&&j.ok===true&&k>=1&&k<=nForms){form=k;mode="server";returning=!!j.returning;
+        // gap filling (2026-11-15): the server hands out forms in turn (next: 15, then 1, 2, ...), but forms 8, 10, 11 were assigned
+        // and never started and 7, 9, 12 were left partly done. New raters fill those first; a returning rater keeps the server's
+        // form (15 was never assigned before this change, so a returning 15 is always a new-scheme rater).
+        const GAP={15:8,1:10,2:11,3:15,4:7,5:9,6:12};
+        if(nForms===15&&(!returning||k===15)&&GAP[k])form=GAP[k]}}
     catch(e){}finally{if(tm)clearTimeout(tm)}}
   if(!form)form=formFor(name,nForms);
   lsSet(ASSIGN,{form:form,name:nn,mode:mode,returning:returning,at:new Date().toISOString()});return form};

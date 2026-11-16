@@ -21,13 +21,23 @@ button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--a
 .part{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-radius:5px;padding:8px 10px;background:var(--bg)}
 .part b{font-weight:600}.st{font:15px ui-monospace,Menlo,monospace;color:var(--muted)}
 .status{font-size:16px;min-height:1.4em}.ok{color:var(--good)}.warn{color:var(--warn)}
+.bg{border:1px solid var(--line);border-radius:5px;background:var(--bg);padding:10px 14px;margin:0 0 14px;font-size:17px}
 .tag:empty{display:none}.tag{font:12px ui-monospace,Menlo,monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:1px 6px;margin-left:8px;font-weight:400}
 </style>
 </head>
 <body>
 <main>
   <h1>Slider study <span class="tag" id="formtag"></span></h1>
-  <p class="lead">Compare two versions of the same slider: which one is smoother and more consistent, has fewer artifacts, and is better overall?</p>
+  <div class="bg">
+    <p><b>What is a slider?</b> Image and video editing models change a picture following an instruction, for example
+    &ldquo;make the person older&rdquo; or &ldquo;blur the background&rdquo;. A <i>slider</i> lets you choose how strong the edit is:
+    stepping through it from left to right shows the same picture with the edit at gradually increasing strength, from barely
+    changed to fully edited. In video sliders, every step is a short clip.</p>
+    <p class="muted" style="margin-bottom:0">A good slider changes smoothly and steadily from one step to the next, keeps the parts that the
+    instruction does not mention unchanged, and has no artifacts such as two versions of an object blended together (double
+    edges, see-through or ghostly shapes) or smeared regions.</p>
+  </div>
+  <p class="lead">In each comparison you see two versions of the same slider, A and B. Which one is smoother and more consistent, has fewer artifacts, and is better overall?</p>
   <p class="lead">4 parts · <span id="ntot">35</span> comparisons. Answers are saved automatically; take a break between parts if you like.</p>
   <p class="lead">Pick A or B whenever you can; <b>use &ldquo;No preference&rdquo; sparingly</b>.</p>
   <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><label for="rname"><b>Name</b></label>
